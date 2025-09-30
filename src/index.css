@@ -1,0 +1,130 @@
+ @import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Professional Medical Color Scheme */
+  --background: oklch(0.99 0.005 106); /* Clean white with slight blue tint */
+  --foreground: oklch(0.15 0.005 106); /* Professional dark blue-gray */
+  --card: oklch(1 0 0); /* Pure white cards */
+  --card-foreground: oklch(0.15 0.005 106); /* Professional dark text */
+  --popover: oklch(1 0 0); /* White popovers */
+  --popover-foreground: oklch(0.15 0.005 106); /* Dark text */
+  --primary: oklch(61.093% 0.11269 226.789); /* Professional medical blue */
+  --primary-foreground: oklch(0.98 0.005 106); /* Light text */
+  --secondary: oklch(63.686% 0.08778 208.102); /* Light medical blue */
+  --secondary-foreground: oklch(98.455% 0.00253 107.122); /* Dark text */
+  --muted: oklch(0.96 0.01 106); /* Very light medical blue */
+  --muted-foreground: oklch(0.5 0.02 142); /* Medium text */
+  --accent: oklch(0.59 0.1 142); /* Accent medical blue */
+  --accent-foreground: oklch(0.98 0.005 106); /* Light text */
+  --destructive: oklch(0.577 0.245 27.325); /* Professional red */
+  --destructive-foreground: oklch(0.98 0.005 106); /* Light text */
+  --warning: oklch(0.75 0.15 85); /* Professional orange */
+  --warning-foreground: oklch(92.548% 0.01192 106.773); /* Dark text */
+  --border: oklch(0.92 0.01 106); /* Light professional border */
+  --input: oklch(0.95 0.01 106); /* Light input background */
+  --ring: oklch(0.45 0.12 142 / 0.5); /* Primary ring with opacity */
+  --chart-1: oklch(0.646 0.222 41.116); /* Chart color 1 */
+  --chart-2: oklch(0.6 0.118 184.704); /* Chart color 2 */
+  --chart-3: oklch(0.398 0.07 227.392); /* Chart color 3 */
+  --chart-4: oklch(0.828 0.189 84.429); /* Chart color 4 */
+  --chart-5: oklch(0.769 0.188 70.08); /* Chart color 5 */
+  --radius: 0.5rem;
+  --sidebar: oklch(0.98 0.005 106); /* Light professional sidebar */
+  --sidebar-foreground: oklch(0.15 0.005 106); /* Dark text */
+  --sidebar-primary: oklch(0.45 0.12 142); /* Sidebar primary */
+  --sidebar-primary-foreground: oklch(0.98 0.005 106); /* Light text */
+  --sidebar-accent: oklch(0.65 0.08 142); /* Sidebar accent */
+  --sidebar-accent-foreground: oklch(0.15 0.005 106); /* Dark text */
+  --sidebar-border: oklch(0.92 0.01 106); /* Light border */
+  --sidebar-ring: oklch(0.45 0.12 142 / 0.5); /* Sidebar ring */
+}
+
+[data-theme="dark"] {
+  --background: oklch(0.12 0.01 142); /* Dark professional background */
+  --foreground: oklch(0.95 0.01 142); /* Light professional text */
+  --card: oklch(0.15 0.01 142); /* Dark professional cards */
+  --card-foreground: oklch(0.95 0.01 142); /* Light text */
+  --popover: oklch(0.15 0.01 142); /* Dark popovers */
+  --popover-foreground: oklch(0.95 0.01 142); /* Light text */
+  --primary: oklch(59.734% 0.11269 226.789); /* Professional medical blue */
+  --primary-foreground: oklch(93.48% 0.01358 145.83); /* Dark text */
+  --secondary: oklch(0.25 0.06 142); /* Medium dark professional blue */
+  --secondary-foreground: oklch(0.95 0.01 142); /* Light text */
+  --muted: oklch(0.2 0.04 142); /* Slightly lighter dark blue */
+  --muted-foreground: oklch(0.7 0.06 142); /* Medium light blue text */
+  --accent: oklch(0.3 0.06 142); /* Accent dark professional blue */
+  --accent-foreground: oklch(0.95 0.01 142); /* Light text */
+  --destructive: oklch(0.6 0.25 25); /* Bright professional red */
+  --destructive-foreground: oklch(91.864% 0.02559 145.553); /* Dark text */
+  --warning: oklch(61.267% 0.11907 84.553); /* Bright professional orange */
+  --warning-foreground: oklch(93.685% 0.01016 145.982); /* Dark text */
+  --border: oklch(0.25 0.04 142); /* Medium dark professional border */
+  --input: oklch(0.18 0.03 142); /* Dark professional inputs */
+  --ring: oklch(0.55 0.12 142 / 0.5); /* Bright professional ring */
+  --chart-1: oklch(0.488 0.243 264.376); /* Chart color 1 */
+  --chart-2: oklch(0.696 0.17 162.48); /* Chart color 2 */
+  --chart-3: oklch(0.769 0.188 70.08); /* Chart color 3 */
+  --chart-4: oklch(0.627 0.265 303.9); /* Chart color 4 */
+  --chart-5: oklch(0.645 0.246 16.439); /* Chart color 5 */
+  --sidebar: oklch(0.13 0.02 142); /* Dark professional sidebar */
+  --sidebar-foreground: oklch(0.95 0.01 142); /* Light text */
+  --sidebar-primary: oklch(0.55 0.12 142); /* Sidebar primary */
+  --sidebar-primary-foreground: oklch(0.12 0.01 142); /* Dark text */
+  --sidebar-accent: oklch(0.25 0.06 142); /* Sidebar accent */
+  --sidebar-accent-foreground: oklch(0.95 0.01 142); /* Light text */
+  --sidebar-border: oklch(0.25 0.04 142); /* Sidebar border */
+  --sidebar-ring: oklch(0.55 0.12 142 / 0.5); /* Sidebar ring */
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
