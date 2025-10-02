@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 interface User {
-  id: number;
+  id: string;
   username: string;
   first_name: string;
   last_name: string;

@@ -21,60 +21,84 @@ export const mockUnits: Unit[] = [
 
 export const mockMedicines: Medicine[] = [
   {
-    id: "1",
-    name: "Paracetamol 500mg",
-    batchNumber: "PAR001",
-    manufacturer: "PharmaCorp",
-    categoryId: "2",
-    unitId: "1",
-    price: 5.99,
-    stockQuantity: 150,
-    expiryDate: new Date("2025-12-31"),
-    barcode: "1234567890123",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: 1,
+    is_out_of_stock: false,
+    is_expired: false,
+    is_nearly_expired: false,
+    code_no: "PAR001",
+    brand_name: "Paracetamol 500mg",
+    generic_name: "Paracetamol",
+    batch_no: "PAR001",
+    manufacture_date: "2023-01-01",
+    expire_date: "2025-12-31",
+    price: "5.99",
+    stock: 150,
+    low_stock_threshold: 10,
+    attachment: null,
+    created_at: "2023-01-01T00:00:00Z",
+    updated_at: "2023-01-01T00:00:00Z",
+    department: 1,
+    created_by: "admin",
   },
   {
-    id: "2",
-    name: "Amoxicillin 250mg",
-    batchNumber: "AMX002",
-    manufacturer: "MediLab",
-    categoryId: "1",
-    unitId: "2",
-    price: 12.5,
-    stockQuantity: 8,
-    expiryDate: new Date("2024-06-30"),
-    barcode: "2345678901234",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: 2,
+    is_out_of_stock: false,
+    is_expired: false,
+    is_nearly_expired: true,
+    code_no: "AMX002",
+    brand_name: "Amoxicillin 250mg",
+    generic_name: "Amoxicillin",
+    batch_no: "AMX002",
+    manufacture_date: "2023-02-01",
+    expire_date: "2024-06-30",
+    price: "12.50",
+    stock: 8,
+    low_stock_threshold: 10,
+    attachment: null,
+    created_at: "2023-02-01T00:00:00Z",
+    updated_at: "2023-02-01T00:00:00Z",
+    department: 1,
+    created_by: "admin",
   },
   {
-    id: "3",
-    name: "Vitamin D3 1000IU",
-    batchNumber: "VIT003",
-    manufacturer: "HealthPlus",
-    categoryId: "4",
-    unitId: "6",
-    price: 18.99,
-    stockQuantity: 75,
-    expiryDate: new Date("2026-03-15"),
-    barcode: "3456789012345",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: 3,
+    is_out_of_stock: false,
+    is_expired: false,
+    is_nearly_expired: false,
+    code_no: "VIT003",
+    brand_name: "Vitamin D3 1000IU",
+    generic_name: "Vitamin D3",
+    batch_no: "VIT003",
+    manufacture_date: "2023-03-01",
+    expire_date: "2026-03-15",
+    price: "18.99",
+    stock: 75,
+    low_stock_threshold: 10,
+    attachment: null,
+    created_at: "2023-03-01T00:00:00Z",
+    updated_at: "2023-03-01T00:00:00Z",
+    department: 1,
+    created_by: "admin",
   },
   {
-    id: "4",
-    name: "Face Moisturizer SPF 30",
-    batchNumber: "COS004",
-    manufacturer: "BeautyMed",
-    categoryId: "3",
-    unitId: "3",
-    price: 24.99,
-    stockQuantity: 45,
-    expiryDate: new Date("2025-08-20"),
-    barcode: "4567890123456",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: 4,
+    is_out_of_stock: false,
+    is_expired: false,
+    is_nearly_expired: false,
+    code_no: "COS004",
+    brand_name: "Face Moisturizer SPF 30",
+    generic_name: "Moisturizer",
+    batch_no: "COS004",
+    manufacture_date: "2023-04-01",
+    expire_date: "2025-08-20",
+    price: "24.99",
+    stock: 45,
+    low_stock_threshold: 10,
+    attachment: null,
+    created_at: "2023-04-01T00:00:00Z",
+    updated_at: "2023-04-01T00:00:00Z",
+    department: 1,
+    created_by: "admin",
   },
 ]
 
@@ -124,11 +148,12 @@ export function getDashboardStats(): DashboardStats {
     .filter((sale) => sale.date >= monthAgo)
     .reduce((sum, sale) => sum + sale.totalAmount, 0)
 
-  const lowStockCount = mockMedicines.filter((med) => med.stockQuantity < 10).length
-  const expiredCount = mockMedicines.filter((med) => med.expiryDate < today).length
+  const lowStockCount = mockMedicines.filter((med) => med.stock < med.low_stock_threshold).length
+  const expiredCount = mockMedicines.filter((med) => new Date(med.expire_date) < today).length
   const nearExpiryCount = mockMedicines.filter((med) => {
     const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
-    return med.expiryDate <= thirtyDaysFromNow && med.expiryDate > today
+    const expireDate = new Date(med.expire_date)
+    return expireDate <= thirtyDaysFromNow && expireDate > today
   }).length
 
   return {
@@ -157,9 +182,9 @@ export function getTopSellingMedicines() {
 
   // Map to array with medicine name
   const result = Object.entries(salesByMedicine).map(([medicineId, data]) => {
-    const medicine = mockMedicines.find((med) => med.id === medicineId)
+    const medicine = mockMedicines.find((med) => med.id.toString() === medicineId)
     return {
-      name: medicine ? medicine.name : "Unknown",
+      name: medicine ? medicine.brand_name : "Unknown",
       sales: data.sales,
       revenue: data.revenue,
     }

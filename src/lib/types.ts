@@ -18,22 +18,38 @@ export interface RefillRecord {
   batchNumber: string;
 }
 
+export interface Refill {
+  medicine: string;
+  department: string;
+  batch_number: string;
+  batch_no: string;
+  manufacture_date: string;
+  expire_date: string;
+  price: string;
+  quantity: number;
+  refill_date: string;
+  end_date: string | null;
+}
+
 export interface Medicine {
-  id: string;
-  name: string;
-  genericName?: string;
-  batchNumber: string;
-  manufacturer: string;
-  categoryId: string;
-  unitId: string;
-  price: number;
-  stockQuantity: number;
-  expiryDate: Date;
-  barcode?: string;
-  imageFile?: File;
-  createdAt: Date;
-  updatedAt: Date;
-  refillHistory?: RefillRecord[];
+  id: number;
+  is_out_of_stock: boolean;
+  is_expired: boolean;
+  is_nearly_expired: boolean;
+  code_no: string;
+  brand_name: string;
+  generic_name: string;
+  batch_no: string;
+  manufacture_date: string; // ISO date string
+  expire_date: string; // ISO date string
+  price: string; // string to keep consistent with user input, e.g. "10.50"
+  stock: number;
+  low_stock_threshold: number;
+  attachment: string | null;
+  created_at: string;
+  updated_at: string;
+  department: number;
+  created_by: string;
 }
 
 export interface Category {

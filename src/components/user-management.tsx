@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users, Plus, Search, Edit, Trash2 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
-import { useCreateUSerMutation, useDeleteUsersByIdMutation, useGetUsersQuery, useUpdateUsersByIdMutation } from "@/store/userAPi";
 import { toast } from "sonner";
+import { useCreateUSerMutation, useDeleteUsersByIdMutation, useGetUsersQuery, useUpdateUsersByIdMutation } from "@/store/userApi";
 
 export function deleteUser(userId: string) {
   console.log(userId)
@@ -21,13 +21,13 @@ export function deleteUser(userId: string) {
 export function UserManagement() {
   const { data, error, isLoading, refetch } = useGetUsersQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUSerMutation();
-  const [deleteUserMutation, { isLoading: isDeleting }] = useDeleteUsersByIdMutation();
+  const [deleteUserMutation] = useDeleteUsersByIdMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUsersByIdMutation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const [editingUser, setEditingUser] = useState<null | { id: number; username: string; email: string; role: string; first_name: string;  last_name:string}>(null);
+  const [editingUser, setEditingUser] = useState<null | { id: string; username: string; email: string; role: string; first_name: string;  last_name:string}>(null);
   const [formData, setFormData] = useState({
     username: "",
     first_name: "",
