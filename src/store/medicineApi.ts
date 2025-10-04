@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { pagination } from "./saleApi";
 
 export interface Medicine {
   id: string;
@@ -19,13 +20,13 @@ export interface Medicine {
   updated_at: string;
   department: string;
   created_by: string;
+  refill_count:number
 }
 
 interface PaginatedMedicinesResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
+  
   results: Medicine[];
+  pagination: pagination;
 }
 
 export const medicineApi = createApi({
@@ -45,11 +46,17 @@ export const medicineApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getMedicines: builder.query<PaginatedMedicinesResponse, void>({
-      query: () => ({
-        url: `/pharmacy/medicines/`,
-        method: "GET",
-      }),
+    getMedicines: builder.query<PaginatedMedicinesResponse, { pageNumber?: number; pageSize?: number }>({
+      query: (params = {}) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("pageNumber", String(params.pageNumber ?? 1));
+        queryParams.append("page_size", String(params.pageSize ?? 10));
+        const url = `/pharmacy/medicines/?${queryParams.toString()}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
     }),
     getMedicineByCode: builder.query<Medicine, string>({
       query: (code_no) => ({

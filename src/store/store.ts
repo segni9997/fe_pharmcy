@@ -6,6 +6,9 @@ import { userApi } from "./userApi";
 import { medicineApi } from "./medicineApi";
 import { unitApi } from "./unitApi";
 import { refillApi } from "./refillApi";
+import { saleApi } from "./saleApi";
+import { dashboardApi } from "./dashboardApi";
+
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
@@ -13,10 +16,19 @@ export const store = configureStore({
     [medicineApi.reducerPath]: medicineApi.reducer,
     [unitApi.reducerPath]: unitApi.reducer,
     [refillApi.reducerPath]: refillApi.reducer,
+    [saleApi.reducerPath]: saleApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware).concat(userApi.middleware).concat(medicineApi.middleware).concat(unitApi.middleware).concat(refillApi.middleware),
+    getDefaultMiddleware()
+      .concat(authApi.middleware)
+      .concat(userApi.middleware)
+      .concat(medicineApi.middleware)
+      .concat(unitApi.middleware)
+      .concat(refillApi.middleware)
+      .concat(saleApi.middleware)
+      .concat(dashboardApi.middleware),
 });
 
 // for TypeScript types

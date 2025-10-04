@@ -13,13 +13,25 @@ import { Users, Plus, Search, Edit, Trash2 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { useCreateUSerMutation, useDeleteUsersByIdMutation, useGetUsersQuery, useUpdateUsersByIdMutation } from "@/store/userApi";
+import { useQueryParamsState } from "@/hooks/useQueryParamsState";
+import { Pagination } from "@/components/ui/pagination";
 
 export function deleteUser(userId: string) {
   console.log(userId)
 
 }
 export function UserManagement() {
-  const { data, error, isLoading, refetch } = useGetUsersQuery();
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+  } = useQueryParamsState();
+
+  const { data, error, isLoading, refetch } = useGetUsersQuery({
+    pageNumber: currentPage,
+    pageSize: itemsPerPage,
+  });
   const [createUser, { isLoading: isCreating }] = useCreateUSerMutation();
   const [deleteUserMutation] = useDeleteUsersByIdMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUsersByIdMutation();
@@ -425,15 +437,13 @@ if (editingUser) {
                 </Table>
               )}
             </div>
-            {/* Pagination Controls */}
-            <div className="flex justify-between mt-4">
-              <Button onClick={() => refetch()} disabled={!data?.previous}>
-                Previous
-              </Button>
-              <Button onClick={() => refetch()} disabled={!data?.next}>
-                Next
-              </Button>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil((data?.count || 0) / itemsPerPage)}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           </CardContent>
         </Card>
       </main>

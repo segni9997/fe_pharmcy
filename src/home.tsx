@@ -1,12 +1,20 @@
 "use client";
 
-import { Dashboard } from "./components/dashboard";
 import { LoginForm } from "./components/login-form";
 import { useAuth } from "./lib/auth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   if (isLoading) {
     return (
@@ -20,5 +28,5 @@ export default function HomePage() {
     return <LoginForm />;
   }
 
-  return <Dashboard />;
+  return null;
 }

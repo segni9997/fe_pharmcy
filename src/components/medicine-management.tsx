@@ -1,7 +1,6 @@
 import type React from "react";
 import { useState, useMemo } from "react";
 
-import type { RefillRecord } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +54,9 @@ import {
   Trash2,
   RefreshCw,
   History,
+  Download,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { jwtDecode } from "jwt-decode";
 import {
@@ -77,15 +78,34 @@ import {
   useCreateRefillMutation,
   // useUpdateRefillMutation,
   useGetRefillsQuery,
-  useDeleteRefillMutation,
 } from "@/store/refillApi";
 
+import { useQueryParamsState } from "@/hooks/useQueryParamsState";
+import { Pagination } from "@/components/ui/pagination";
+
 export function MedicineManagement() {
-  const [currentPage] = useState(1);
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+  } = useQueryParamsState();
 
   // Apis
-  const { data: Units, refetch } = useGetUnitsQuery();
-  const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery();
+  const { data: Units, refetch } = useGetUnitsQuery({
+    pageNumber: currentPage,
+    pageSize: itemsPerPage,
+  });
+  const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery({
+    pageNumber: currentPage,
+    pageSize: itemsPerPage,
+  }, {
+    // Refetch when these params change
+    refetchOnMountOrArgChange: true,
+  }
+  
+  );
+  console.log("object", meds);
   const { data: refills, refetch: refetchRefills } = useGetRefillsQuery();
   const [AddUnit, { isLoading: isUnitAdding }] = useCreateUnitMutation();
   const [UpdateUnit] = useUpdateUnitMutation();
@@ -96,12 +116,8 @@ export function MedicineManagement() {
   const [DeleteMedicine] = useDeleteMedicineMutation();
   const [createRefill, { isLoading: isRefilling }] = useCreateRefillMutation();
   // const [updateRefill, { isLoading: isUpdatingRefill }] = useUpdateRefillMutation();
-  const [deleteRefill, { isLoading: isDeletingRefill }] = useDeleteRefillMutation();
 
-  const [medicines, setMedicines] = useState<Medicine[] | null>(
-    meds?.results || null
-  );
-  console.log(meds)
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -168,6 +184,9 @@ export function MedicineManagement() {
     return (
       meds?.results?.filter((medicine) => {
         const matchesSearch =
+          medicine.generic_name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           medicine.generic_name
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
@@ -368,6 +387,25 @@ export function MedicineManagement() {
       Units?.results.find((unit) => unit.id === categoryId)
         ?.name || "Unknown"
     );
+  };
+
+  const handleExport = () => {
+    const data = filteredMedicines.map(med => ({
+      'Medicine Name': med.brand_name,
+      'Generic Name': med.generic_name || '',
+      'Code No': med.code_no,
+      'Unit': getCategoryName(med.department.toString()),
+      'Batch': med.batch_no,
+      'Price': med.price,
+      'Stock': med.stock,
+      'Expiry Date': new Date(med.expire_date).toLocaleDateString(),
+      'Status': getExpiryStatus(new Date(med.expire_date)).label,
+      'Refills': med.refill_count
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Medicines');
+    XLSX.writeFile(wb, 'medicines.xlsx');
   };
 
   return (
@@ -856,6 +894,10 @@ export function MedicineManagement() {
                   </form>
                 </DialogContent>
               </Dialog>
+              <Button onClick={handleExport} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export to Excel
+              </Button>
             </div>
           )}
 
@@ -1047,7 +1089,7 @@ export function MedicineManagement() {
       </header>
 
       {/* Main Content */}
-      <main className="p-8 max-w-7xl mx-auto">
+      <main className="p-8 max-w-8xl mx-auto">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-6 mb-8">
           <div className="relative flex-1">
@@ -1119,7 +1161,7 @@ export function MedicineManagement() {
           <CardHeader className="bg-gradient-to-r from-muted/50 to-muted/30 dark:from-muted/50 dark:to-muted/30">
             <CardTitle className="flex items-center gap-3 text-foreground">
               <Package className="h-6 w-6" />
-              Medicine Inventory ({meds?.count || 0})
+              Medicine Inventory ({meds?.pagination.totalItems || 0})
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Manage your medicine inventory and track stock levels
@@ -1189,7 +1231,7 @@ export function MedicineManagement() {
                           {medicine.batch_no}
                         </TableCell>
                         <TableCell className="font-semibold text-foreground">
-                          ${parseFloat(medicine.price).toFixed(2)}
+                          Birr {parseFloat(medicine.price).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -1215,7 +1257,7 @@ export function MedicineManagement() {
                           </Badge>
                         </TableCell>
                         {canEdit && (
-                          <TableCell className="text-foreground">0</TableCell>
+                          <TableCell className="text-foreground">{medicine.refill_count}</TableCell>
                         )}
                         {canEdit && (
                           <TableCell>
@@ -1261,6 +1303,13 @@ export function MedicineManagement() {
                 </TableBody>
               </Table>
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={meds?.pagination.totalPages || 1}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           </CardContent>
         </Card>
       </main>

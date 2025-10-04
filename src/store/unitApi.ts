@@ -30,11 +30,17 @@ export const unitApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getUnits: builder.query<PaginatedUnitsResponse, void>({
-      query: () => ({
-        url: "/pharmacy/departments/",
-        method: "GET",
-      }),
+    getUnits: builder.query<PaginatedUnitsResponse, { pageNumber?: number; pageSize?: number }>({
+      query: (params = {}) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("pageNumber", String(params.pageNumber ?? 1));
+        queryParams.append("page_size", String(params.pageSize ?? 10));
+        const url = `/pharmacy/departments/?${queryParams.toString()}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
     }),
     getUnitByCode: builder.query<Unit, string>({
       query: (code) => ({

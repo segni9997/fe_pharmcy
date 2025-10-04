@@ -10,6 +10,17 @@ export interface User {
   role: UserRole;
   createdAt?: Date;
 }
+export interface Userinfo {
+  id: string;
+  name?: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  role: UserRole;
+  createdAt?: Date;
+}
+
 
 export interface RefillRecord {
   initialQuantity: number;
@@ -32,7 +43,7 @@ export interface Refill {
 }
 
 export interface Medicine {
-  id: number;
+  id: string;
   is_out_of_stock: boolean;
   is_expired: boolean;
   is_nearly_expired: boolean;
@@ -48,7 +59,7 @@ export interface Medicine {
   attachment: string | null;
   created_at: string;
   updated_at: string;
-  department: number;
+  department: string;
   created_by: string;
 }
 
@@ -69,22 +80,27 @@ export interface Unit {
 
 export interface Sale {
   id: string;
-  date: Date;
-  totalAmount: number;
-  cashierId: string;
-  customerName?: string;
-  customerPhone?: string;
-  createdAt: Date;
+  customer_name?: string;
+  customer_phone?: string;
+  discounted_amount: string;
+  base_price: string;
+  discount_percentage: string;
+
+  discounted_by: string;
+  total_amount: string;
+  sale_date: string;
+  sold_by: string;
+  sold_by_name: string;
+  items: SaleItem[];
 }
 
 export interface SaleItem {
   id: string;
-  saleId: string;
-  medicineId: string;
+  medicine: string;
+  medicine_name: string;
   quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  medicine?: Medicine;
+  price: string;
+  total_price: number;
 }
 
 export interface DashboardStats {
@@ -95,4 +111,70 @@ export interface DashboardStats {
   lowStockCount: number;
   expiredCount: number;
   nearExpiryCount: number;
+}
+
+export interface AnalyticsData {
+  summary: {
+    total_revenue: number;
+    total_transactions: number;
+    avg_order_value: number;
+    inventory_value: number;
+  };
+  sales_trend: Array<{
+    day: string;
+    total_sales: number;
+  }>;
+  inventory_by_category: Array<{
+    department__name: string;
+    value: number;
+  }>;
+  top_selling: Array<{
+    medicine__brand_name: string;
+    total_sold: number;
+  }>;
+  stock_alerts: {
+    low_stock: any[];
+    stock_out: any[];
+    near_expiry: any[];
+  };
+  weekly_summary: {
+    week_sales: number;
+    transactions: number;
+    new_customers: number;
+  };
+  inventory_health: {
+    total_products: number;
+    low_stock: number;
+    near_expiry: number;
+    stock_out: number;
+  };
+  performance_metrics: {
+    profit_margin: number;
+    inventory_turnover: number;
+    customer_satisfaction: number;
+  };
+}
+
+export interface OverviewData {
+  stock: {
+    total_medicines: number;
+    low_stock: number;
+    stock_out: number;
+    expired: number;
+    near_expiry: number;
+  };
+  sales: {
+    today_sales_qty: number;
+    total_sales_qty: number;
+    revenue_today: number;
+    total_revenue: number;
+  };
+  top_selling: Array<{
+    medicine__brand_name: string;
+    total_sold: number;
+  }>;
+  departments: Array<{
+    department__name: string;
+    total: number;
+  }>;
 }

@@ -1,3 +1,4 @@
+import type { Userinfo } from "@/lib/types";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 interface User {
@@ -42,13 +43,19 @@ export const userApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getUsers: builder.query<PaginatedUsersResponse, void>({
-      query: () => ({
-        url: "/accounts/users/",
-        method: "GET",
-      }),
+    getUsers: builder.query<PaginatedUsersResponse, { pageNumber?: number; pageSize?: number }>({
+      query: (params = {}) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("pageNumber", String(params.pageNumber ?? 1));
+        queryParams.append("page_size", String(params.pageSize ?? 10));
+        const url = `/accounts/users/?${queryParams.toString()}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
     }),
-    getUsersById: builder.query<User, string>({
+    getUsersById: builder.query<Userinfo, string>({
       query: (id) => ({
         url: `/accounts/users/${id}/`,
         method: "GET",
@@ -90,4 +97,4 @@ export const userApi = createApi({
   }),
 });
 
-export const { useGetUsersQuery, useGetUsersByIdQuery , useCreateUSerMutation, usePatchUsersByIdMutation,useUpdateUsersByIdMutation, useDeleteUsersByIdMutation} = userApi;
+export const { useGetUsersQuery, useGetUsersByIdQuery ,useLazyGetUsersByIdQuery, useCreateUSerMutation, usePatchUsersByIdMutation,useUpdateUsersByIdMutation, useDeleteUsersByIdMutation} = userApi;
