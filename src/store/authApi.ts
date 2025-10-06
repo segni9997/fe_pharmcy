@@ -22,11 +22,11 @@ interface LoginRequest {
   username: string;
   password: string;
 }
-
+export const API_URL = import.meta.env.VITE_API_URL
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/api",
+    baseUrl: API_URL,
     prepareHeaders: (headers) => {
       // 🔑 Read token straight from localStorage
       const stored = localStorage.getItem("token_access");

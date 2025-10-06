@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { AnalyticsData, OverviewData } from "@/lib/types";
+import { API_URL } from "./authApi";
 
 export const dashboardApi = createApi({
   reducerPath: "dashboardApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/api",
+    baseUrl: API_URL,
     prepareHeaders: (headers) => {
       const stored = localStorage.getItem("access_token");
       if (stored) {

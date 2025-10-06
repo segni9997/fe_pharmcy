@@ -91,10 +91,15 @@ export function MedicineManagement() {
     setItemsPerPage,
   } = useQueryParamsState();
 
+  const [unitCurrentPage, setUnitCurrentPage] = useState(1);
+  const [unitItemsPerPage, setUnitItemsPerPage] = useState(10);
+
   // Apis
   const { data: Units, refetch } = useGetUnitsQuery({
-    pageNumber: currentPage,
-    pageSize: itemsPerPage,
+    pageNumber: unitCurrentPage,
+    pageSize: unitItemsPerPage,
+  }, {
+    refetchOnMountOrArgChange: true,
   });
   const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery({
     pageNumber: currentPage,
@@ -160,6 +165,7 @@ export function MedicineManagement() {
     department: "",
     // imageFile: null,
   });
+
   const [isUnitSheetOpen, setIsUnitSheetOpen] = useState(false);
 
   // useEffect(() => {
@@ -825,6 +831,13 @@ export function MedicineManagement() {
                         ))}
                       </TableBody>
                     </Table>
+                    <Pagination
+                      currentPage={unitCurrentPage}
+                      totalPages={Units?.pagination.totalPages || 1}
+                      itemsPerPage={unitItemsPerPage}
+                      onPageChange={setUnitCurrentPage}
+                      onItemsPerPageChange={setUnitItemsPerPage}
+                    />
                   </div>
                 </SheetContent>
               </Sheet>

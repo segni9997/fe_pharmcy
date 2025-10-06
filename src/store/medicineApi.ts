@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { pagination } from "./saleApi";
+import { API_URL } from "./authApi";
 
 export interface Medicine {
   id: string;
@@ -32,7 +33,7 @@ interface PaginatedMedicinesResponse {
 export const medicineApi = createApi({
   reducerPath: "medicineApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/api",
+    baseUrl: API_URL,
     prepareHeaders: (headers) => {
       const stored = localStorage.getItem("access_token");
       if (stored) {

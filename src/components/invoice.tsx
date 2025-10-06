@@ -2,17 +2,30 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useGetSaleByIdQuery } from "@/store/saleApi";
 import { useAuth } from "@/lib/auth";
+import { ToWords } from "to-words";
 import "../assets/css/invoice.css";
+import { convertToWords } from "react-number-to-words";
 
 export default function InvoicePage() {
   const { user } = useAuth();
-
+const toWords = new ToWords({
+  localeCode: "en-US",
+  converterOptions: {
+    currency: true,
+    ignoreDecimal: false,
+    ignoreZeroCurrency: true,
+  },
+});
+  const convertToBirrWords = (amount: number) => {
+    const text = toWords.convert(amount, { currency: true });
+    return text.replace(/dollars?/gi, "Birr").replace(/cents?/gi, "cents");
+  };
   const [date, setDate] = useState("");
   const [fNo, setFNo] = useState("");
-  const [fromAddress, setFromAddress] = useState(user?.username || "");
+  const [fromAddress] = useState(user?.username || "");
   const [fromTIN, setFromTIN] = useState("0024397833");
   const [toAddress, setToAddress] = useState("");
-  const [toHouseNo, setToHouseNo] = useState("");
+  const [_, setToHouseNo] = useState("");
   const [toVATReg, setToVATReg] = useState("");
 
   const [items, setItems] = useState(
@@ -31,23 +44,25 @@ export default function InvoicePage() {
   const [subTotal, setSubTotal] = useState("");
   const [vat, setVat] = useState("");
   const [grandTotal, setGrandTotal] = useState("");
+  const [amountInWords, setAmountInWords] = useState("");
   const [paymentMode, setPaymentMode] = useState("cash");
-  const [checkNo, setCheckNo] = useState("");
-  const [_, setPreparedBy] = useState("");
+  const [preparedBy, setPreparedBy] = useState("");
   const [cashierSign, setCashierSign] = useState("");
 
   const location = useLocation();
 
   const saleIdFromState = location.state?.saleId;
   const { data: saleDetail } = useGetSaleByIdQuery(saleIdFromState || "", { skip: !saleIdFromState });
-
+console.log("saleDetail", saleDetail);
   useEffect(() => {
     const sale = location.state?.sale;
     if (sale) {
       setDate(new Date(sale.sale_date).toLocaleDateString());
-      setFNo(sale.id);
+      // setFNo(sale.id);
+      // setToAddress(sale.customer_name || "");
+      // setToHouseNo(sale.customer_phone || "");
       setToAddress(sale.customer_name || "");
-      setToHouseNo(sale.customer_phone || "");
+
 
       const saleItems = sale.items.map((item: any, index: number) => ({
         id: index + 1,
@@ -67,17 +82,17 @@ export default function InvoicePage() {
       setSubTotal(totalAfterDiscount.toFixed(2));
       setVat("0.00"); // No VAT in POS
       setGrandTotal(totalAfterDiscount.toFixed(2));
-
-      setPreparedBy(sale.discounted_by || "");
+   const words = convertToBirrWords(totalAfterDiscount);
+   setAmountInWords(words);
+      console.log(convertToWords(Number(totalAfterDiscount)));
+      setPreparedBy(sale.discounted_by || "");  
     }
   }, [location.state]);
 
   useEffect(() => {
     if (saleDetail) {
       setDate(new Date(saleDetail.sale_date).toLocaleDateString());
-      setFNo(saleDetail.id);
-      setToAddress(saleDetail.customer_name || "");
-      setToHouseNo(saleDetail.customer_phone || "");
+
 
       const saleItems = saleDetail.items.map((item: any, index: number) => ({
         id: index + 1,
@@ -124,6 +139,7 @@ export default function InvoicePage() {
     calculateTotals(newItems);
   };
 
+
   const calculateTotals = (currentItems: any[]) => {
     const sum = currentItems.reduce((acc, item) => {
       return acc + (Number.parseFloat(item.totalPrice) || 0);
@@ -133,6 +149,10 @@ export default function InvoicePage() {
     const vatAmount = sum * 0.15; // 15% VAT
     setVat(vatAmount.toFixed(2));
     setGrandTotal((sum + vatAmount).toFixed(2));
+
+    // Convert grand total to words using to-words module
+    setAmountInWords(convertToWords(sum + vatAmount));
+    console.log(convertToWords(sum + vatAmount));
   };
 
   const handlePrint = () => {
@@ -161,7 +181,7 @@ export default function InvoicePage() {
       setSubTotal("");
       setVat("");
       setGrandTotal("");
-      setCheckNo("");
+      setAmountInWords("");
       setPreparedBy("");
       setCashierSign("");
     }
@@ -173,7 +193,11 @@ export default function InvoicePage() {
         <div className="invoice-header">
           <div className="pharmacy-name-amharic">ቶሂም መድኃኒት ቤት</div>
           <div className="pharmacy-name-english">TO HIM PHARMACY</div>
-          <div className="header-fields flex flex-row justify-between">
+          <div className="phone-number">
+            <span>☎</span>
+            <span>0995-969797</span>
+          </div>
+          <div className="header-fields flex flex-col ms-auto justify-end  items-end  ">
             <div className="field-group">
               <label>Date:</label>
               <input
@@ -193,23 +217,29 @@ export default function InvoicePage() {
           </div>
         </div>
 
-        <div className="parties-section">
+        <div className="grid grid-cols-2 gap-24">
           <div className="party">
-            <h3>From:</h3>
-            <div className="party-field">
-              <label>Seller:</label>
-              <input
-                type="text"
-                value={fromAddress}
-                onChange={(e) => setFromAddress(e.target.value)}
-              />
-            </div>
+            <h3>
+              From: &nbsp;
+              <strong>{fromAddress || user?.username || "_________"}</strong>
+            </h3>
             <div className="party-field">
               <label>Address:</label>
-              <span>S/C</span>
+              <div className="flex flex-col">
+                <input
+                  type="text"
+                  value="LIDETA"
+                  // onChange={(e) => setFromAddress(e.target.value)}
+                  className="w-fit "
+                  readOnly
+                />
+
+                <span>W.04 H.No 303/2</span>
+              </div>
             </div>
+
             <div className="party-field">
-              <label>TIN No:</label>
+              <label>Supplier's TIN No.</label>
               <input
                 type="text"
                 value={fromTIN}
@@ -219,31 +249,39 @@ export default function InvoicePage() {
           </div>
 
           <div className="party">
-            <h3>To:</h3>
+            <h3>
+              To:{" "}
+              <span>
+                {saleDetail?.customer_name?.toUpperCase() ||  toAddress || "__________"}
+              </span>
+            </h3>
             <div className="party-field">
-              <label>Customer:</label>
+              <label>Address:</label>
               <input
                 type="text"
-                value={toAddress}
+                value={ "__________"}
                 onChange={(e) => setToAddress(e.target.value)}
               />
+              {/* <p>H.No.</p> */}
             </div>
+
             <div className="party-field">
-              <label>Phone:</label>
-              <input
-                type="text"
-                value={toHouseNo}
-                onChange={(e) => setToHouseNo(e.target.value)}
-              />
-            </div>
-            <div className="party-field">
-              <label>VAT Reg.No:</label>
+              <label>Customer's VAT Reg.No</label>
               <input
                 type="text"
                 value={toVATReg}
                 onChange={(e) => setToVATReg(e.target.value)}
               />
             </div>
+
+            {/* <div className="party-field">
+              <label>Date of Registration</label>
+              <input
+                type="text"
+                value={toRegDate}
+                onChange={(e) => setToRegDate(e.target.value)}
+              />
+            </div> */}
           </div>
         </div>
 
@@ -253,7 +291,7 @@ export default function InvoicePage() {
           <thead>
             <tr>
               <th style={{ width: "50px" }}>S.No</th>
-              <th style={{ width: "300px" }}>Description</th>
+              <th style={{ width: "200px" }}>Description</th>
               <th style={{ width: "80px" }}>Unit</th>
               <th style={{ width: "80px" }}>Qty.</th>
               <th style={{ width: "100px" }}>Unit Price</th>
@@ -335,26 +373,49 @@ export default function InvoicePage() {
           </table>
         </div>
 
-
+        <div className="amount-in-words">
+          <label>In words:</label>
+          <input
+            type="text"
+            value={amountInWords}
+            onChange={(e) => setAmountInWords(e.target.value)}
+          />
+        </div>
 
         <div className="payment-section">
           <div className="payment-field">
-            <label>Mode of Payment:</label>
-            <label>Cash</label>
-            <input
-              type="checkbox"
-              checked={paymentMode === "cash"}
-              onChange={(e) => setPaymentMode(e.target.checked ? "cash" : "")}
-            />
-            <label>Check No.</label>
+            <label>Prepared by</label>
             <input
               type="text"
-              value={checkNo}
-              onChange={(e) => setCheckNo(e.target.value)}
+              value={preparedBy}
+              onChange={(e) => setPreparedBy(e.target.value)}
             />
           </div>
           <div className="payment-field">
-            <label>Cashier Sign:</label>
+            <label>Prepared date</label>
+            <input
+              type="text"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="payment-field">
+            <label>Method of Payment</label>
+            <div>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={paymentMode === "cash"}
+                  onChange={(e) =>
+                    setPaymentMode(e.target.checked ? "cash" : "")
+                  }
+                />
+                Cash
+              </label>
+            </div>
+          </div>
+          <div className="payment-field">
+            <label>Cashier sign</label>
             <input
               type="text"
               value={cashierSign}
@@ -375,10 +436,7 @@ export default function InvoicePage() {
             🗑️ Clear Form
           </button>
         </div>
-        <div className="phone-number">
-          <span>☎</span>
-          <span>0995-969797</span>
-        </div>
+    
       </div>
     </div>
   );

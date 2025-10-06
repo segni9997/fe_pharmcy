@@ -22,7 +22,7 @@
 
 .header-fields {
   justify-content: center;
-  gap: 10px;
+  /* gap: 5px; */
 }
 
 .field-group {
@@ -30,7 +30,7 @@
 }
 
 .field-group label {
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .field-group input {
@@ -40,14 +40,14 @@
 }
 
 .pharmacy-name-amharic {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: bold;
   margin-bottom: 3px;
   letter-spacing: 1px;
 }
 
 .pharmacy-name-english {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   letter-spacing: 2px;
   margin-bottom: 5px;
@@ -61,12 +61,13 @@
   gap: 3px;
 }
 
-.parties-section {
+/* .parties-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 15px;
-}
+  margin: auto;
+} */
 
 .party {
   font-size: 11px;
@@ -79,24 +80,23 @@
 }
 
 .party-field {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   display: flex;
+  flex-direction: row;
   gap: 3px;
 }
 
 .party-field label {
   font-weight: bold;
-  min-width: 60px;
+  max-width:fit-content;
   font-size: 11px;
 }
 
 .party-field input {
-  border: none;
-  border-bottom: 1px solid #333;
-  flex: 1;
-  font-family: inherit;
-  padding: 1px;
+  font-weight: bold;
+  max-width:fit-content;
   font-size: 11px;
+  text-decoration: underline;
 }
 
 .party-field span {
