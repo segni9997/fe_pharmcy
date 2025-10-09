@@ -66,7 +66,7 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
       <header className="border-b bg-card shadow-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-extrabold text-primary tracking-wide">
+            <h1 className="md:text-3xl text-md font-bold md:font-extrabold text-primary tracking-wide">
               TO HIM PHARMACY
             </h1>
           </div>
@@ -78,10 +78,9 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
               <Button
                 variant="outline"
                 size="sm"
-                className="border-primary text-primary hover:bg-primary/10"
+                className="border-primary text-primary rounded-full hover:bg-primary/10"
               >
-                <User className="h-5 w-5 mr-2" />
-                Profile
+                <User className="h-5 w-5 " />
               </Button>
             </Link>
             <Button

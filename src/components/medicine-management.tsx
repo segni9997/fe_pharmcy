@@ -55,8 +55,10 @@ import {
   RefreshCw,
   History,
   Download,
+  X,
+  Menu,
 } from "lucide-react";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { jwtDecode } from "jwt-decode";
 import {
@@ -84,31 +86,31 @@ import { useQueryParamsState } from "@/hooks/useQueryParamsState";
 import { Pagination } from "@/components/ui/pagination";
 
 export function MedicineManagement() {
-  const {
-    currentPage,
-    setCurrentPage,
-    itemsPerPage,
-    setItemsPerPage,
-  } = useQueryParamsState();
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage } =
+    useQueryParamsState();
 
   const [unitCurrentPage, setUnitCurrentPage] = useState(1);
   const [unitItemsPerPage, setUnitItemsPerPage] = useState(10);
 
   // Apis
-  const { data: Units, refetch } = useGetUnitsQuery({
-    pageNumber: unitCurrentPage,
-    pageSize: unitItemsPerPage,
-  }, {
-    refetchOnMountOrArgChange: true,
-  });
-  const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery({
-    pageNumber: currentPage,
-    pageSize: itemsPerPage,
-  }, {
-    // Refetch when these params change
-    refetchOnMountOrArgChange: true,
-  }
-  
+  const { data: Units, refetch } = useGetUnitsQuery(
+    {
+      pageNumber: unitCurrentPage,
+      pageSize: unitItemsPerPage,
+    },
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
+  const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery(
+    {
+      pageNumber: currentPage,
+      pageSize: itemsPerPage,
+    },
+    {
+      // Refetch when these params change
+      refetchOnMountOrArgChange: true,
+    }
   );
   console.log("object", meds);
   const { data: refills, refetch: refetchRefills } = useGetRefillsQuery();
@@ -121,8 +123,7 @@ export function MedicineManagement() {
   const [DeleteMedicine] = useDeleteMedicineMutation();
   const [createRefill, { isLoading: isRefilling }] = useCreateRefillMutation();
   // const [updateRefill, { isLoading: isUpdatingRefill }] = useUpdateRefillMutation();
-
-
+  const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -262,7 +263,7 @@ export function MedicineManagement() {
           expire_date: formData.expire_date,
           price: formData.price,
           stock: Number.parseInt(formData.stock),
-          department: formData.unit,
+          department: formData.department,
         }).unwrap();
         toast.success("Medicine updated successfully");
         refetchMeds();
@@ -390,219 +391,245 @@ export function MedicineManagement() {
 
   const getCategoryName = (categoryId: string) => {
     return (
-      Units?.results.find((unit) => unit.id === categoryId)
-        ?.name || "Unknown"
+      Units?.results.find((unit) => unit.id === categoryId)?.name || "Unknown"
     );
   };
 
   const handleExport = () => {
-    const data = filteredMedicines.map(med => ({
-      'Medicine Name': med.brand_name,
-      'Generic Name': med.generic_name || '',
-      'Code No': med.code_no,
-      'Unit': getCategoryName(med.department.toString()),
-      'Batch': med.batch_no,
-      'Price': med.price,
-      'Stock': med.stock,
-      'Expiry Date': new Date(med.expire_date).toLocaleDateString(),
-      'Status': getExpiryStatus(new Date(med.expire_date)).label,
-      'Refills': med.refill_count
+    const data = filteredMedicines.map((med) => ({
+      "Medicine Name": med.brand_name,
+      "Generic Name": med.generic_name || "",
+      "Code No": med.code_no,
+      Unit: getCategoryName(med.department.toString()),
+      Batch: med.batch_no,
+      Price: med.price,
+      Stock: med.stock,
+      "Expiry Date": new Date(med.expire_date).toLocaleDateString(),
+      Status: getExpiryStatus(new Date(med.expire_date)).label,
+      Refills: med.refill_count,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Medicines');
-    XLSX.writeFile(wb, 'medicines.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, "Medicines");
+    XLSX.writeFile(wb, "medicines.xlsx");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-background via-card to-background dark:from-background dark:via-card dark:to-background">
       {/* Header */}
+ 
       <header className="border-b bg-gradient-to-r from-primary to-secondary shadow-md dark:from-primary dark:to-secondary">
         <div className="flex h-16 items-center justify-between px-6 w-full">
-          <div className="hidden md:flex items-center gap-4">
-            <h1 className="md:text-3xl text-lg font-extrabold text-white tracking-wide">
-              Medicine Management
-            </h1>
-          </div>
+          {/* Logo / Title */}
+          <h1 className="text-lg md:text-2xl font-extrabold text-white tracking-wide">
+            Medicine Management
+          </h1>
+
+          {/* If user can edit */}
           {canEdit && (
-            <div className="flex gap-2">
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Medicine
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingMedicine ? "Edit Medicine" : "Add New Medicine"}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {editingMedicine
-                        ? "Update medicine information"
-                        : "Enter the details for the new medicine"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="brand_name">Medicine Name *</Label>
-                          <Input
-                            id="brand_name"
-                            value={formData.brand_name}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                brand_name: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="genericName">
-                            Generic Name (Optional)
-                          </Label>
-                          <Input
-                            id="genericName"
-                            value={formData.generic_name}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                generic_name: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="batchNumber">Batch Number *</Label>
-                          <Input
-                            id="batchNumber"
-                            value={formData.batch_no}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                batch_no: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>{" "}
-                        <div className="space-y-2">
-                          <Label htmlFor="code_no">Code Number *</Label>
-                          <Input
-                            id="code_no"
-                            value={formData.code_no}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                code_no: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="manufactureDate">
-                            Manufacture Date *
-                          </Label>
-                          <Input
-                            id="manufactureDate"
-                            type="date"
-                            value={formData.manufacture_date}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                manufacture_date: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="unit">Unit *</Label>
-                          <Select
-                            value={formData.unit}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                unit: value,
-                              }))
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select unit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Units?.results.map((category) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="price">Price (Birr) *</Label>
-                          <Input
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            value={formData.price}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                price: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="stockQuantity">
-                            Stock Quantity *
-                          </Label>
-                          <Input
-                            id="stockQuantity"
-                            type="number"
-                            value={formData.stock}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                stock: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="expiryDate">Expiry Date *</Label>
-                          <Input
-                            id="expiryDate"
-                            type="date"
-                            value={formData.expire_date}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                expire_date: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                      </div>
-                      {/* <div className="space-y-2">
+            <div className="relative">
+              {/* Mobile toggle */}
+              <button
+                onClick={() => setOpen(!open)}
+                className="md:hidden p-2 text-white hover:text-gray-200"
+              >
+                {open ? <X size={24} /> : <Menu size={24} />}
+              </button>
+
+              {/* Menu items */}
+              <div
+                className={`absolute md:static top-14 right-0 bg-white md:bg-transparent 
+              flex flex-col md:flex-row gap-2 p-4 md:p-0 rounded-lg shadow-md 
+              md:shadow-none transition-all duration-200 z-50 
+              ${open ? "flex" : "hidden md:flex"}`}
+              >
+                {/* Replace these with your real dialog triggers */}
+                  <Dialog
+                    open={isAddDialogOpen}
+                    onOpenChange={setIsAddDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button onClick={resetForm}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Medicine
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingMedicine
+                            ? "Edit Medicine"
+                            : "Add New Medicine"}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingMedicine
+                            ? "Update medicine information"
+                            : "Enter the details for the new medicine"}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleSubmit}>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="brand_name">
+                                Medicine Name *
+                              </Label>
+                              <Input
+                                id="brand_name"
+                                value={formData.brand_name}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    brand_name: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="genericName">
+                                Generic Name (Optional)
+                              </Label>
+                              <Input
+                                id="genericName"
+                                value={formData.generic_name}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    generic_name: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="batchNumber">
+                                Batch Number *
+                              </Label>
+                              <Input
+                                id="batchNumber"
+                                value={formData.batch_no}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    batch_no: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>{" "}
+                            <div className="space-y-2">
+                              <Label htmlFor="code_no">Code Number *</Label>
+                              <Input
+                                id="code_no"
+                                value={formData.code_no}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    code_no: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="manufactureDate">
+                                Manufacture Date *
+                              </Label>
+                              <Input
+                                id="manufactureDate"
+                                type="date"
+                                value={formData.manufacture_date}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    manufacture_date: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="unit">Unit *</Label>
+                              <Select
+                                value={formData.department}
+                                onValueChange={(value) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    department: value,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Units?.results.map((category) => (
+                                    <SelectItem
+                                      key={category.id}
+                                      value={category.id.toString()}
+                                    >
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="price">Price (Birr) *</Label>
+                              <Input
+                                id="price"
+                                type="number"
+                                step="0.01"
+                                value={formData.price}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    price: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="stockQuantity">
+                                Stock Quantity *
+                              </Label>
+                              <Input
+                                id="stockQuantity"
+                                type="number"
+                                value={formData.stock}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    stock: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="expiryDate">Expiry Date *</Label>
+                              <Input
+                                id="expiryDate"
+                                type="date"
+                                value={formData.expire_date}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    expire_date: e.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </div>
+                          </div>
+                          {/* <div className="space-y-2">
                         <Label htmlFor="barcode">Barcode (Optional)</Label>
                         <Input
                           id="barcode"
@@ -616,7 +643,7 @@ export function MedicineManagement() {
                           placeholder="Enter barcode number"
                         />
                       </div> */}
-                      {/* <div className="space-y-2">
+                          {/* <div className="space-y-2">
                         <Label htmlFor="imageFile">Image File (Optional)</Label>
                         <input
                           id="imageFile"
@@ -630,474 +657,487 @@ export function MedicineManagement() {
                           }
                         />
                       </div> */}
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isCreating}>
-                        {editingMedicine ? "Update Medicine" : "Add Medicine"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Sheet open={isUnitSheetOpen} onOpenChange={setIsUnitSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline">View Unit</Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-full sm:w-[540px] max-w-full sm:max-w-[540px]"
-                >
-                  <SheetHeader>
-                    <SheetTitle>Unit Management</SheetTitle>
-                    <SheetDescription>
-                      View and manage units for medicines
-                    </SheetDescription>
-                  </SheetHeader>
-                  <div className="py-4 overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Units?.results.map((unit) => (
-                          <TableRow key={unit.id}>
-                            <TableCell className="font-mono">
-                              {unit.code}
-                            </TableCell>
-                            <TableCell>
-                              {inlineEditingUnit === unit.id ? (
-                                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                                  <Input
-                                    value={inlineEditData.code}
-                                    onChange={(e) =>
-                                      setInlineEditData((prev) => ({
-                                        ...prev,
-                                        code: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Code"
-                                    className="w-full sm:w-24 border-border"
-                                  />
-                                  <Input
-                                    value={inlineEditData.name}
-                                    onChange={(e) =>
-                                      setInlineEditData((prev) => ({
-                                        ...prev,
-                                        name: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Name"
-                                    className="flex-1 border-border"
-                                  />
-                                  <div className="flex gap-2 justify-end sm:justify-start">
-                                    <Button
-                                      // variant="outline"
-                                      className="bg-primary hover:bg-primary/80 text-white"
-                                      size="sm"
-                                      onClick={async () => {
-                                        try {
-                                          await UpdateUnit(
-                                            inlineEditData
-                                          ).unwrap();
-                                          setInlineEditingUnit(null);
-                                          setInlineEditData({
-                                            id: "",
-                                            code: "",
-                                            name: "",
-                                          });
-                                          refetch();
-                                          toast.success(
-                                            "Unit updated successfully"
-                                          );
-                                        } catch (error) {
-                                          toast.error("Failed to update unit");
-                                          console.error(
-                                            "Update unit error:",
-                                            error
-                                          );
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsAddDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={isCreating}>
+                            {editingMedicine
+                              ? "Update Medicine"
+                              : "Add Medicine"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Sheet
+                    open={isUnitSheetOpen}
+                    onOpenChange={setIsUnitSheetOpen}
+                  >
+                    <SheetTrigger asChild>
+                      <Button variant="outline">View Unit</Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side="left"
+                      className="w-full sm:w-[540px] max-w-full sm:max-w-[540px]"
+                    >
+                      <SheetHeader>
+                        <SheetTitle>Unit Management</SheetTitle>
+                        <SheetDescription>
+                          View and manage units for medicines
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="py-4 overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Code</TableHead>
+                              <TableHead>Name</TableHead>
+                              <TableHead className="text-right">
+                                Action
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {Units?.results.map((unit) => (
+                              <TableRow key={unit.id}>
+                                <TableCell className="font-mono">
+                                  {unit.code}
+                                </TableCell>
+                                <TableCell>
+                                  {inlineEditingUnit === unit.id ? (
+                                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                                      <Input
+                                        value={inlineEditData.code}
+                                        onChange={(e) =>
+                                          setInlineEditData((prev) => ({
+                                            ...prev,
+                                            code: e.target.value,
+                                          }))
                                         }
-                                      }}
-                                    >
-                                      Save
-                                    </Button>
-                                    <Button
-                                      className="bg-warning hover:bg-warning/80 text-white"
-                                      size="sm"
-                                      onClick={() => {
-                                        setInlineEditingUnit(null);
-                                        setInlineEditData({
-                                          id: "",
-                                          code: "",
-                                          name: "",
-                                        });
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="flex justify-between items-center flex-wrap gap-2">
-                                  <div>{unit.name}</div>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setInlineEditingUnit(unit.id);
-                                        setInlineEditData({
-                                          id: unit.id,
-                                          code: unit.code,
-                                          name: unit.name,
-                                        });
-                                      }}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        toast.custom(
-                                          (t) => (
-                                            <div className="bg-background  text-foreground border rounded-lg p-4 shadow-md flex flex-col gap-2 w-64">
-                                              <p className="text-sm">
-                                                Are you sure you want to delete{" "}
-                                                <b>{unit.name}</b>?
-                                              </p>
-                                              <div className="flex justify-end gap-2">
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  onClick={() =>
-                                                    toast.dismiss(t)
-                                                  }
-                                                >
-                                                  Cancel
-                                                </Button>
-                                                <Button
-                                                  size="sm"
-                                                  variant="destructive"
-                                                  onClick={async () => {
-                                                    try {
-                                                      await DeleteUnit(
-                                                        unit.id
-                                                      ).unwrap();
-                                                      toast.success(
-                                                        "Unit deleted successfully"
-                                                      );
-                                                      refetch();
-                                                      toast.dismiss(t);
-                                                    } catch (error) {
-                                                      toast.error(
-                                                        "Failed to delete unit"
-                                                      );
-                                                      console.error(
-                                                        "Delete unit error:",
-                                                        error
-                                                      );
-                                                    } finally {
-                                                      toast.dismiss(t);
-                                                    }
-                                                  }}
-                                                >
-                                                  Delete
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          ),
-                                          { duration: 20000 }
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                    <Pagination
-                      currentPage={unitCurrentPage}
-                      totalPages={Units?.pagination.totalPages || 1}
-                      itemsPerPage={unitItemsPerPage}
-                      onPageChange={setUnitCurrentPage}
-                      onItemsPerPageChange={setUnitItemsPerPage}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
+                                        placeholder="Code"
+                                        className="w-full sm:w-24 border-border"
+                                      />
+                                      <Input
+                                        value={inlineEditData.name}
+                                        onChange={(e) =>
+                                          setInlineEditData((prev) => ({
+                                            ...prev,
+                                            name: e.target.value,
+                                          }))
+                                        }
+                                        placeholder="Name"
+                                        className="flex-1 border-border"
+                                      />
+                                      <div className="flex gap-2 justify-end sm:justify-start">
+                                        <Button
+                                          // variant="outline"
+                                          className="bg-primary hover:bg-primary/80 text-white"
+                                          size="sm"
+                                          onClick={async () => {
+                                            try {
+                                              await UpdateUnit(
+                                                inlineEditData
+                                              ).unwrap();
+                                              setInlineEditingUnit(null);
+                                              setInlineEditData({
+                                                id: "",
+                                                code: "",
+                                                name: "",
+                                              });
+                                              refetch();
+                                              toast.success(
+                                                "Unit updated successfully"
+                                              );
+                                            } catch (error) {
+                                              toast.error(
+                                                "Failed to update unit"
+                                              );
+                                              console.error(
+                                                "Update unit error:",
+                                                error
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          Save
+                                        </Button>
+                                        <Button
+                                          className="bg-warning hover:bg-warning/80 text-white"
+                                          size="sm"
+                                          onClick={() => {
+                                            setInlineEditingUnit(null);
+                                            setInlineEditData({
+                                              id: "",
+                                              code: "",
+                                              name: "",
+                                            });
+                                          }}
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex justify-between items-center flex-wrap gap-2">
+                                      <div>{unit.name}</div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setInlineEditingUnit(unit.id);
+                                            setInlineEditData({
+                                              id: unit.id,
+                                              code: unit.code,
+                                              name: unit.name,
+                                            });
+                                          }}
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            toast.custom(
+                                              (t) => (
+                                                <div className="bg-background  text-foreground border rounded-lg p-4 shadow-md flex flex-col gap-2 w-64">
+                                                  <p className="text-sm">
+                                                    Are you sure you want to
+                                                    delete <b>{unit.name}</b>?
+                                                  </p>
+                                                  <div className="flex justify-end gap-2">
+                                                    <Button
+                                                      size="sm"
+                                                      variant="ghost"
+                                                      onClick={() =>
+                                                        toast.dismiss(t)
+                                                      }
+                                                    >
+                                                      Cancel
+                                                    </Button>
+                                                    <Button
+                                                      size="sm"
+                                                      variant="destructive"
+                                                      onClick={async () => {
+                                                        try {
+                                                          await DeleteUnit(
+                                                            unit.id
+                                                          ).unwrap();
+                                                          toast.success(
+                                                            "Unit deleted successfully"
+                                                          );
+                                                          refetch();
+                                                          toast.dismiss(t);
+                                                        } catch (error) {
+                                                          toast.error(
+                                                            "Failed to delete unit"
+                                                          );
+                                                          console.error(
+                                                            "Delete unit error:",
+                                                            error
+                                                          );
+                                                        } finally {
+                                                          toast.dismiss(t);
+                                                        }
+                                                      }}
+                                                    >
+                                                      Delete
+                                                    </Button>
+                                                  </div>
+                                                </div>
+                                              ),
+                                              { duration: 20000 }
+                                            );
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        <Pagination
+                          currentPage={unitCurrentPage}
+                          totalPages={Units?.pagination.totalPages || 1}
+                          itemsPerPage={unitItemsPerPage}
+                          onPageChange={setUnitCurrentPage}
+                          onItemsPerPageChange={setUnitItemsPerPage}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
 
-              <Dialog
-                open={isAddUnitDialogOpen}
-                onOpenChange={setIsAddUnitDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="outline" onClick={resetUnitForm}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Unit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New Unit</DialogTitle>
-                    <DialogDescription>
-                      Enter the details for the new unit
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleUnitSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="unitName">Unit Code *</Label>
-                        <Input
-                          id="UnitCode"
-                          value={unitFormData.code}
-                          onChange={(e) =>
-                            setUnitFormData((prev) => ({
-                              ...prev,
-                              code: e.target.value,
-                            }))
-                          }
-                          placeholder="Enter unit Code"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="unitName">Unit Name *</Label>
-                        <Input
-                          id="unitName"
-                          value={unitFormData.name}
-                          onChange={(e) =>
-                            setUnitFormData((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
-                          }
-                          placeholder="Enter unit name"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddUnitDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isUnitAdding}>
+                  <Dialog
+                    open={isAddUnitDialogOpen}
+                    onOpenChange={setIsAddUnitDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="outline" onClick={resetUnitForm}>
+                        <Plus className="h-4 w-4 mr-2" />
                         Add Unit
                       </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Button onClick={handleExport} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export to Excel
-              </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Add New Unit</DialogTitle>
+                        <DialogDescription>
+                          Enter the details for the new unit
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleUnitSubmit}>
+                        <div className="grid gap-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="unitName">Unit Code *</Label>
+                            <Input
+                              id="UnitCode"
+                              value={unitFormData.code}
+                              onChange={(e) =>
+                                setUnitFormData((prev) => ({
+                                  ...prev,
+                                  code: e.target.value,
+                                }))
+                              }
+                              placeholder="Enter unit Code"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="unitName">Unit Name *</Label>
+                            <Input
+                              id="unitName"
+                              value={unitFormData.name}
+                              onChange={(e) =>
+                                setUnitFormData((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                              placeholder="Enter unit name"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsAddUnitDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={isUnitAdding}>
+                            Add Unit
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Button onClick={handleExport} variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export to Excel
+                  </Button>
+
+                  {/* Refill Dialog */}
+                  <Dialog
+                    open={isRefillDialogOpen}
+                    onOpenChange={setIsRefillDialogOpen}
+                  >
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Refill Medicine</DialogTitle>
+                        <DialogDescription>
+                          Add stock to {refillingMedicine?.brand_name}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleRefillSubmit}>
+                        <div className="grid gap-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="quantity">Quantity to Add *</Label>
+                            <Input
+                              id="quantity"
+                              type="number"
+                              value={refillFormData.quantity}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  quantity: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="manufacture_date">
+                              Manufuctured Date *
+                            </Label>
+                            <Input
+                              id="manufacture_date"
+                              type="date"
+                              value={refillFormData.manufacture_date}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  manufacture_date: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="expire_date">
+                              Expire Date (Optional)
+                            </Label>
+                            <Input
+                              id="expire_date"
+                              type="date"
+                              value={refillFormData.expire_date}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  expire_date: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="price">Price (Birr) *</Label>
+                            <Input
+                              id="price"
+                              type="number"
+                              step="1.00"
+                              value={refillFormData.price}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  price: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="batch_number">Batch Number *</Label>
+                            <Input
+                              id="batch_no"
+                              value={refillFormData.batch_no}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  batch_no: e.target.value,
+                                }))
+                              }
+                              placeholder="Enter batch number"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsRefillDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={isRefilling}>
+                            Refill
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog
+                    open={isHistoryDialogOpen}
+                    onOpenChange={setIsHistoryDialogOpen}
+                  >
+                    <DialogContent className="w-[95vw] sm:max-w-full lg:max-w-5xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Refill History - {historyMedicine?.brand_name}
+                        </DialogTitle>
+                        <DialogDescription>
+                          View all refill records for this medicine
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="py-4 w-full overflow-x-auto">
+                        {(() => {
+                          const medicineRefills =
+                            refills?.results.filter(
+                              (r) =>
+                                r.medicine === historyMedicine?.id.toString()
+                            ) || [];
+
+                          return medicineRefills.length > 0 ? (
+                            <div className="max-h-96 overflow-y-auto">
+                              <Table className="min-w-[800px]">
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Batch No</TableHead>
+                                    <TableHead>Manufactured Date</TableHead>
+                                    <TableHead>Refilled Quantity</TableHead>
+                                    <TableHead>Refill Date</TableHead>
+                                    <TableHead>Expire Date</TableHead>
+                                    <TableHead>Refilled By</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {medicineRefills.map((record, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell>{record.batch_no}</TableCell>
+                                      <TableCell>
+                                        {record.manufacture_date}
+                                      </TableCell>
+                                      <TableCell>{record.quantity}</TableCell>
+                                      <TableCell>
+                                        {new Date(
+                                          record.refill_date
+                                        ).toLocaleDateString()}
+                                      </TableCell>
+                                      <TableCell>
+                                        {record.expire_date
+                                          ? new Date(
+                                              record.expire_date
+                                            ).toLocaleDateString()
+                                          : "N/A"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {record.created_by_username}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No refill history available.
+                            </p>
+                          );
+                        })()}
+                      </div>
+
+                      <DialogFooter>
+                        <Button onClick={() => setIsHistoryDialogOpen(false)}>
+                          Close
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
             </div>
           )}
-
-          {/* Refill Dialog */}
-          <Dialog
-            open={isRefillDialogOpen}
-            onOpenChange={setIsRefillDialogOpen}
-          >
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Refill Medicine</DialogTitle>
-                <DialogDescription>
-                  Add stock to {refillingMedicine?.brand_name}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleRefillSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity to Add *</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      value={refillFormData.quantity}
-                      onChange={(e) =>
-                        setRefillFormData((prev) => ({
-                          ...prev,
-                          quantity: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="manufacture_date">
-                      Manufuctured Date *
-                    </Label>
-                    <Input
-                      id="manufacture_date"
-                      type="date"
-                      value={refillFormData.manufacture_date}
-                      onChange={(e) =>
-                        setRefillFormData((prev) => ({
-                          ...prev,
-                          manufacture_date: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="expire_date">Expire Date (Optional)</Label>
-                    <Input
-                      id="expire_date"
-                      type="date"
-                      value={refillFormData.expire_date}
-                      onChange={(e) =>
-                        setRefillFormData((prev) => ({
-                          ...prev,
-                          expire_date: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price (Birr) *</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="1.00"
-                      value={refillFormData.price}
-                      onChange={(e) =>
-                        setRefillFormData((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="batch_number">Batch Number *</Label>
-                    <Input
-                      id="batch_no"
-                      value={refillFormData.batch_no}
-                      onChange={(e) =>
-                        setRefillFormData((prev) => ({
-                          ...prev,
-                          batch_no: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter batch number"
-                      required
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsRefillDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isRefilling}>
-                    Refill
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          {/* History Dialog */}
-          <Dialog
-            open={isHistoryDialogOpen}
-            onOpenChange={setIsHistoryDialogOpen}
-          >
-            <DialogContent className="w-[95vw] sm:max-w-full lg:max-w-5xl">
-              <DialogHeader>
-                <DialogTitle>
-                  Refill History - {historyMedicine?.brand_name}
-                </DialogTitle>
-                <DialogDescription>
-                  View all refill records for this medicine
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="py-4 w-full overflow-x-auto">
-                {(() => {
-                  const medicineRefills =
-                    refills?.results.filter(
-                      (r) => r.medicine === historyMedicine?.id.toString()
-                    ) || [];
-
-                  return medicineRefills.length > 0 ? (
-                    <div className="max-h-96 overflow-y-auto">
-                      <Table className="min-w-[800px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Batch No</TableHead>
-                            <TableHead>Manufactured Date</TableHead>
-                            <TableHead>Refilled Quantity</TableHead>
-                            <TableHead>Refill Date</TableHead>
-                            <TableHead>Expire Date</TableHead>
-                            <TableHead>Refilled By</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {medicineRefills.map((record, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{record.batch_no}</TableCell>
-                              <TableCell>{record.manufacture_date}</TableCell>
-                              <TableCell>{record.quantity}</TableCell>
-                              <TableCell>
-                                {new Date(
-                                  record.refill_date
-                                ).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell>
-                                {record.expire_date
-                                  ? new Date(
-                                      record.expire_date
-                                    ).toLocaleDateString()
-                                  : "N/A"}
-                              </TableCell>
-                              <TableCell>
-                                {record.created_by_username}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      No refill history available.
-                    </p>
-                  );
-                })()}
-              </div>
-
-              <DialogFooter>
-                <Button onClick={() => setIsHistoryDialogOpen(false)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </header>
 
@@ -1270,7 +1310,9 @@ export function MedicineManagement() {
                           </Badge>
                         </TableCell>
                         {canEdit && (
-                          <TableCell className="text-foreground">{medicine.refill_count}</TableCell>
+                          <TableCell className="text-foreground">
+                            {medicine.refill_count}
+                          </TableCell>
                         )}
                         {canEdit && (
                           <TableCell>

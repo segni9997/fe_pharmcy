@@ -181,7 +181,7 @@ export function AnalyticsDashboard() {
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
           
-            <h1 className="md:text-3xl text-lg font-bold text-primary">
+            <h1 className="md:text-3xl hidden md:flex text-lg font-bold text-primary">
               Analytics Dashboard
             </h1>
           </div>
@@ -207,7 +207,7 @@ export function AnalyticsDashboard() {
               className="border-primary text-primary hover:bg-primary/10"
             >
               <Download className="h-5 w-5 mr-2" />
-              Export Data
+             
             </Button>
             <Button
               variant="outline"

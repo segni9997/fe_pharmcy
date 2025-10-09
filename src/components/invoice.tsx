@@ -191,7 +191,7 @@ console.log("saleDetail", saleDetail);
     <div className="invoice-page">
       <div className="invoice-container">
         <div className="invoice-header">
-          <div className="pharmacy-name-amharic">ቶሂም መድኃኒት ቤት</div>
+          <div className="pharmacy-name-amharic">ቱሂም መድኃኒት ቤት</div>
           <div className="pharmacy-name-english">TO HIM PHARMACY</div>
           <div className="phone-number">
             <span>☎</span>
