@@ -23,7 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // 👇 decode JWT
         const decoded: any = jwtDecode(token);
-        console.log("Decoded token:", decoded);
         // Example: your backend must include `id`, `username`, `role`
         const mappedUser: User = {
           id: decoded.user_id || decoded.id,
@@ -32,9 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         setUser(mappedUser);
-        console.log(mappedUser);
       } catch (e) {
-        console.error("Invalid token", e);
         localStorage.removeItem("access_token");
       }
     }

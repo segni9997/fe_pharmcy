@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { AnalyticsData, OverviewData } from "@/lib/types";
 import { API_URL } from "./authApi";
+import { toast } from "sonner";
 
 export const dashboardApi = createApi({
   reducerPath: "dashboardApi",
@@ -12,7 +13,8 @@ export const dashboardApi = createApi({
         try {
           headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to set authorization header", e);
+                    toast.error("Failed to authorize")
+          
         }
       }
       return headers;

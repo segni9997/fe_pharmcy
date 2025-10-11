@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { pagination } from "./saleApi";
 import { API_URL } from "./authApi";
+import { toast } from "sonner";
 
 export type MedicineUnit =
   | "Bottle"
@@ -57,7 +58,7 @@ export const medicineApi = createApi({
         try {
           headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to set authorization header", e);
+          toast.error("Failed to authorize")
         }
       }
       return headers;

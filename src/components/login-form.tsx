@@ -33,12 +33,10 @@ const handleSubmit = async (e: React.FormEvent) => {
   try {
     // Step 1: login -> get tokens
     const result = await login({ username, password }).unwrap();
-    console.log(result)
       localStorage.setItem("access_token", result.access);
       localStorage.setItem("refresh_token", result.refresh);
     // Step 2: fetch profile with the new token
  
-    console.log("Login success", { token: result.access });
 
     navigate("/dashboard")
     // Step 3: store both tokens and profile
@@ -46,7 +44,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     
 
   } catch (err: any) {
-    console.log(err)
     setError(err?.data?.message || "Invalid username or password");
   }
 };

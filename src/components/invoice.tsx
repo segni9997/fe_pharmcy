@@ -55,7 +55,7 @@ const toWords = new ToWords({
 
   const saleIdFromState = location.state?.saleId;
   const { data: saleDetail } = useGetSaleByIdQuery(saleIdFromState || "", { skip: !saleIdFromState });
-console.log("saleDetail", saleDetail);
+
   useEffect(() => {
     const sale = location.state?.sale;
     const { address, vatreg, fno } = location.state || {};
@@ -89,7 +89,6 @@ console.log("saleDetail", saleDetail);
 
       const words = convertToBirrWords(totalAfterDiscount);
       setAmountInWords(words);
-      console.log(convertToWords(Number(totalAfterDiscount)));
       setPreparedBy(sale.discounted_by || "");  
     }
   }, [location.state]);
@@ -133,7 +132,6 @@ console.log("saleDetail", saleDetail);
       setPreparedBy(saleDetail.discounted_by || "");
          const words = convertToBirrWords(totalAfterDiscount);
    setAmountInWords(words);
-      console.log(convertToWords(Number(totalAfterDiscount)));
       setPreparedBy(saleDetail.discounted_by || "");
 
     }
@@ -183,7 +181,6 @@ console.log("saleDetail", saleDetail);
 
     // Convert grand total to words using to-words module
     setAmountInWords(convertToWords(sum + vatAmount));
-    console.log(convertToWords(sum + vatAmount));
   };
 
   const handlePrint = () => {

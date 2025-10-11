@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Refill } from "@/lib/types";
 import { API_URL } from "./authApi";
+import { toast } from "sonner";
 
 export interface RefillResponse {
   id: string;
@@ -33,7 +34,7 @@ export const refillApi = createApi({
         try {
           headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to set authorization header", e);
+          toast.error("Failed to set authorization header");
         }
       }
       return headers;

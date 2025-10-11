@@ -225,16 +225,13 @@ export function POSSystem() {
     };
 
     try {
-      console.log("salePayload", salePayload);
       const createdSale = await createSale(salePayload).unwrap();
-      console.log("Created Sale:", createdSale);
       toast.success(`${createdSale.items.length} items sold!`);
       // Navigate to invoice with sale data
       navigate("/invoice", { state: { sale: createdSale , ...(customerAddress && {address:customerAddress}), ...(vatRegno && {vatreg:vatRegno}), ...(fno && {fno:fno})} });
 
       clearCart();
     } catch (error) {
-      console.error("Failed to create sale:", error);
     }
   };
 

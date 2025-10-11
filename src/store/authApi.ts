@@ -1,5 +1,6 @@
 // src/store/authApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -35,7 +36,7 @@ export const authApi = createApi({
         
             headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to parse pharmacy_user from localStorage", e);
+          toast.error("Failed to login, Check your credentials");
         }
       }
       return headers;

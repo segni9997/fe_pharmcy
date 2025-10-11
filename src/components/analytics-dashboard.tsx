@@ -65,7 +65,6 @@ export function AnalyticsDashboard() {
         const decoded = jwtDecode<DecodedToken>(token);
         setUser(decoded);
       } catch (error) {
-        console.error("Failed to decode token:", error);
         navigate("/");
       }
     } else {

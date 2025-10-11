@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Sale, SaleItem } from "@/lib/types";
 import { API_URL } from "./authApi";
+import { toast } from "sonner";
 export interface  pagination {
     pageNumber: number;
     pageSize: number;
@@ -32,7 +33,7 @@ export const saleApi = createApi({
         try {
           headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to set authorization header", e);
+          toast.error("Failed to set authorization header");
         }
       }
       return headers;
@@ -45,7 +46,6 @@ export const saleApi = createApi({
         queryParams.append("pageNumber", String(params.pageNumber ?? 1));
         queryParams.append("page_size", String(params.pageSize ?? 10));
         const url = `/pharmacy/sales/?${queryParams.toString()}`;
-        console.log('Fetching sales with URL:', url);
         return {
           url,
           method: "GET",

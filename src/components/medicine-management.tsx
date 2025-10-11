@@ -329,7 +329,6 @@ export function MedicineManagement() {
         department: formData.department,
         unit: formData.unit_type,
       };
-      console.log("newMed", newMed);
 
       try {
         await CreateMedicine(newMed).unwrap();
@@ -408,16 +407,7 @@ export function MedicineManagement() {
           return;
         }
       }
-      console.log("Refill quantity:", {
-        code_no: refillingMedicine.code_no,
-        medicine: refillFormData.medicine,
-        quantity: quantityToAdd,
-        batch_no: refillFormData.batch_no,
-        department: refillFormData.department,
-        manufacture_date: refillFormData.manufacture_date,
-        expire_date: refillFormData.expire_date,
-        price: refillFormData.price,
-      });
+
       await createRefill({
         code_no: refillingMedicine.code_no,
         medicine: refillFormData.medicine,
@@ -436,7 +426,6 @@ export function MedicineManagement() {
       setRefillingMedicine(null);
     } catch (error) {
       toast.error("Failed to add refill");
-      console.error("Refill error:", error);
     }
   };
 
@@ -927,10 +916,7 @@ export function MedicineManagement() {
                                             toast.error(
                                               "Failed to update unit"
                                             );
-                                            console.error(
-                                              "Update unit error:",
-                                              error
-                                            );
+                                          
                                           }
                                         }}
                                       >
@@ -1008,10 +994,7 @@ export function MedicineManagement() {
                                                         toast.error(
                                                           "Failed to delete unit"
                                                         );
-                                                        console.error(
-                                                          "Delete unit error:",
-                                                          error
-                                                        );
+                                                        
                                                       } finally {
                                                         toast.dismiss(t);
                                                       }

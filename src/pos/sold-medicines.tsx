@@ -67,11 +67,9 @@ export function SoldMedicines() {
   useEffect(() => {
     refetch();
   }, [itemsPerPage, refetch]);
-  console.log(salesData);
   const { data: saleDetail } = useGetSaleByIdQuery(selectedSaleId || "", {
     skip: !selectedSaleId,
   });
-console.log(saleDetail)
   const filteredSales = useMemo(() => {
     if (!salesData?.results) return [];
 

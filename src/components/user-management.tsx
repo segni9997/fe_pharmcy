@@ -16,10 +16,7 @@ import { useCreateUSerMutation, useDeleteUsersByIdMutation, useGetUsersQuery, us
 import { useQueryParamsState } from "@/hooks/useQueryParamsState";
 import { Pagination } from "@/components/ui/pagination";
 
-export function deleteUser(userId: string) {
-  console.log(userId)
 
-}
 export function UserManagement() {
   const {
     currentPage,
@@ -51,7 +48,6 @@ export function UserManagement() {
 
   const user: any = jwtDecode(localStorage.getItem("access_token") || "");
   const canEdit = user?.role === "admin";
-  console.log(data)
   // Filter users based on search and role
   const filteredUsers = useMemo(() => {
     if (!data?.results) return [];
@@ -113,7 +109,6 @@ const handleDelete = (userId: string, firstName: string) => {
           onClick={async () => {
             try {
               const res = deleteUserMutation(userId);
-              console.log(res)
               if (!res) throw new Error("Failed to delete");
                 refetch();
               toast.success("User deleted successfully");
@@ -159,31 +154,26 @@ const handleDelete = (userId: string, firstName: string) => {
     e.preventDefault();
 if (editingUser) {
   try {
-    const res = await updateUser({
+    await updateUser({
       id: editingUser.id, // id comes from editingUser
       ...formData, // the updated form values
     }).unwrap();
 
-    console.log(res);
     toast.success("User updated successfully");
     resetForm();
     setIsAddDialogOpen(false);
     refetch();
   } catch (err: any) {
-    console.error("Failed to update user:", err?.data?.message || err);
     toast.error("Failed to update user");
   }
 } else {
   try {
-    console.log(formData);
     await createUser(formData).unwrap();
-    console.log("User added successfully");
     resetForm();
     setIsAddDialogOpen(false);
     refetch();
   } catch (err: any) {
-    console.error("Failed to add user:", err?.data?.message || err);
-    toast.error("Failed to add user");
+    toast.error(`${err?.data?.message || "Failed to add user"}`);
   }
 }
 

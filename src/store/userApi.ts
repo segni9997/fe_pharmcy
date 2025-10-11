@@ -1,6 +1,7 @@
 import type { Userinfo } from "@/lib/types";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_URL } from "./authApi";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -37,7 +38,7 @@ export const userApi = createApi({
         try {
           headers.set("Authorization", `Bearer ${stored}`);
         } catch (e) {
-          console.error("Failed to parse token_access from localStorage", e);
+          toast.error("Failed to parse token_access from localStorage");
         }
       }
       return headers;
