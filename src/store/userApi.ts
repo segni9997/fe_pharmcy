@@ -45,7 +45,10 @@ export const userApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getUsers: builder.query<PaginatedUsersResponse, { pageNumber?: number; pageSize?: number }>({
+    getUsers: builder.query<
+      PaginatedUsersResponse,
+      { pageNumber?: number; pageSize?: number }
+    >({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
         queryParams.append("pageNumber", String(params.pageNumber ?? 1));
@@ -73,7 +76,7 @@ export const userApi = createApi({
           last_name: body.last_name,
           email: body.email,
           role: body.role,
-        }
+        },
       }),
     }),
     deleteUsersById: builder.mutation<void, string>({
@@ -96,7 +99,13 @@ export const userApi = createApi({
         body,
       }),
     }),
+    whoami: builder.query<User, void>({
+      query: () => ({
+        url: "/accounts/users/me/",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useGetUsersByIdQuery ,useLazyGetUsersByIdQuery, useCreateUSerMutation, usePatchUsersByIdMutation,useUpdateUsersByIdMutation, useDeleteUsersByIdMutation} = userApi;
+export const { useGetUsersQuery, useGetUsersByIdQuery ,useLazyGetUsersByIdQuery, useWhoamiQuery,useCreateUSerMutation, usePatchUsersByIdMutation,useUpdateUsersByIdMutation, useDeleteUsersByIdMutation} = userApi;

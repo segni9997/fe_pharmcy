@@ -1,28 +1,13 @@
-import { useAuth } from "@/lib/auth";
-import {  useLazyGetUsersByIdQuery } from "@/store/userApi";
+import {  useWhoamiQuery } from "@/store/userApi";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { User, Mail, Shield } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { Userinfo } from "@/lib/types";
+
 
 export function Profile() {
-  const { user } = useAuth();
-  const [userDetails, setUserDetails] = useState<Userinfo | null>(null);
 
-  const [getUserDetails, { isError: error, isLoading, data }] = useLazyGetUsersByIdQuery();
+  const { data: whomai, isError:error, isLoading } = useWhoamiQuery();
 
-  useEffect(() => {
-    if (user?.id) {
-      getUserDetails(user.id);
-    }
-  }, [user?.id, getUserDetails]);
-
-  useEffect(() => {
-    if (data) {
-      setUserDetails(data);
-    }
-  }, [data]);
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -31,7 +16,7 @@ export function Profile() {
     );
   }
 
-  if (error || !userDetails) {
+  if (error || !whomai) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-lg font-semibold text-destructive">Error loading profile</div>
@@ -55,7 +40,7 @@ export function Profile() {
                 <User className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Username</p>
-                  <p className="font-semibold text-foreground">{userDetails.username}</p>
+                  <p className="font-semibold text-foreground">{whomai?.username}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-card rounded-lg border">
@@ -63,7 +48,7 @@ export function Profile() {
                 <div>
                   <p className="text-sm text-muted-foreground">Full Name</p>
                   <p className="font-semibold text-foreground">
-                    {userDetails.first_name} {userDetails.last_name}
+                    {whomai?.first_name} {whomai?.last_name}
                   </p>
                 </div>
               </div>
@@ -71,14 +56,14 @@ export function Profile() {
                 <Mail className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-semibold text-foreground">{userDetails.email}</p>
+                  <p className="font-semibold text-foreground">{whomai?.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-card rounded-lg border">
                 <Shield className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Role</p>
-                  <p className="font-semibold text-foreground capitalize">{userDetails.role}</p>
+                  <p className="font-semibold text-foreground capitalize">{whomai?.role}</p>
                 </div>
               </div>
             </div>

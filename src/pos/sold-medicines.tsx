@@ -26,9 +26,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, Eye, Download } from "lucide-react";
+import { Calendar, Eye, Download, Trash } from "lucide-react";
 import * as XLSX from 'xlsx';
-import { useGetSalesQuery, useGetSaleByIdQuery } from "@/store/saleApi";
+import { useGetSalesQuery, useGetSaleByIdQuery, useDeleteSaleMutation } from "@/store/saleApi";
 import {
   Dialog,
   DialogContent,
@@ -39,9 +39,13 @@ import {
 } from "@/components/ui/dialog";
 import { useQueryParamsState } from "@/hooks/useQueryParamsState";
 import { Pagination } from "@/components/ui/pagination";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 export function SoldMedicines() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [filterType, setFilterType] = useState<"date" | "week" | "month">("date");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedWeek, setSelectedWeek] = useState<string>("");
@@ -70,6 +74,7 @@ export function SoldMedicines() {
   const { data: saleDetail } = useGetSaleByIdQuery(selectedSaleId || "", {
     skip: !selectedSaleId,
   });
+  const [deleteSale] = useDeleteSaleMutation();
   const filteredSales = useMemo(() => {
     if (!salesData?.results) return [];
 
@@ -159,6 +164,35 @@ export function SoldMedicines() {
     a.download = "sold_medicines.xlsx";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDelete = (saleId: string) => {
+    toast.custom((t) => (
+      <div className="flex flex-col gap-2 bg-destructive/15 p-2">
+        <p>Are you sure you want to delete this sale?</p>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              toast.dismiss(t);
+              deleteSale(saleId)
+                .unwrap()
+                .then(() => {
+                  toast.success("Sale deleted successfully");
+                  refetch();
+                })
+                .catch(() => toast.error("Failed to delete sale"));
+            }}
+            className="bg-destructive text-destructive-foreground"
+          >
+            Yes
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => toast.dismiss(t)}>
+            No
+          </Button>
+        </div>
+      </div>
+    ));
   };
 
   return (
@@ -294,13 +328,27 @@ export function SoldMedicines() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {user?.role && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(sale.id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
-                            variant="ghost"
-                            onClick={() => navigate("/invoice", { state: { saleId: sale.id } })}
+                            variant="outline"
+                            onClick={() =>
+                              navigate("/invoice", {
+                                state: { saleId: sale.id },
+                              })
+                            }
                           >
                             Invoice
                           </Button>
+                       
                           {/* Removed edit button as per user request */}
                           {/* Removed refund button as per user request */}
                         </TableCell>

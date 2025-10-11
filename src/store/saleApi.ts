@@ -95,8 +95,38 @@ export const saleApi = createApi({
         body,
       }),
     }),
+    updateSale: builder.mutation<
+      Sale,
+      {
+        id: string;
+        customer_name?: string;
+        customer_phone?: string;
+        customer_address?: string;
+        vat_regno?: string;
+        fno?: string;
+        payment_method?: string;
+        discount_percentage: number;
+        sold_by: string;
+        items: {
+          medicine: string;
+          quantity: number;
+          price: number;
+        }[];
+      }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/pharmacy/sales/${id}/`,
+        method: "PUT",
+        body,
+      }),
+    }),
+    deleteSale: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/pharmacy/sales/${id}/`,
+        method: "DELETE",
+      }),
+    }),
   }),
-  // Removed updateSale and deleteSale mutations as per user request
 });
 
 export const {
@@ -105,5 +135,6 @@ export const {
   useCreateSaleMutation,
   useGetSaleItemsQuery,
   useCreateSaleItemMutation,
-  // Removed useUpdateSaleMutation and useDeleteSaleMutation hooks as per user request
+  useUpdateSaleMutation,
+  useDeleteSaleMutation,
 } = saleApi;

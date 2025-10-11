@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useGetSaleByIdQuery } from "@/store/saleApi";
-import { useAuth } from "@/lib/auth";
 import { ToWords } from "to-words";
 import "../assets/css/invoice.css";
 import { convertToWords } from "react-number-to-words";
 
 export default function InvoicePage() {
-  const { user } = useAuth();
 const toWords = new ToWords({
   localeCode: "en-US",
   converterOptions: {
@@ -250,13 +248,7 @@ const toWords = new ToWords({
           <div className="party">
             <h4>
               From: &nbsp;
-              <strong>
-                {saleDetail?.sold_by
-                  ? saleDetail.sold_by.toUpperCase()
-                  : user?.username
-                  ? user.username.toUpperCase()
-                  : "_________"}
-              </strong>
+              <strong>KASU ABERHAM</strong>
             </h4>
             <div className="party-field">
               <label>Address:</label>
@@ -460,8 +452,8 @@ const toWords = new ToWords({
             />
           </div>
           <div className="payment-field">
-            <label>Method of Payment</label>: <strong className="text-[10px]">{paymentMode}</strong>
-           
+            <label>Method of Payment</label>:{" "}
+            <strong className="text-[10px]">{paymentMode}</strong>
           </div>
           <div className="payment-field">
             <label>Cashier sign</label>
