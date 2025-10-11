@@ -135,7 +135,7 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
               <div className="text-3xl font-extrabold">
                 {overviewData.stock.total_medicines}
               </div>
-              <p className="text-xs opacity-80 mt-1">Active inventory items</p>
+              <p className="text-xs opacity-80 mt-1">Active Medicine items</p>
             </CardContent>
           </Card>
 
@@ -194,7 +194,7 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
                   Medicine Management
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                   manage your medicine inventory
+                  manage your medicine Medicine
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -295,7 +295,9 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
             </CardHeader>
             <CardContent>
               {overviewData.top_selling.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No sales data available.</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No sales data available.
+                </p>
               ) : (
                 <div className="space-y-4">
                   {overviewData.top_selling.map((medicine, index) => (
@@ -315,7 +317,9 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
                         <div className="text-2xl font-bold text-primary">
                           {medicine.total_sold}
                         </div>
-                        <span className="text-xs text-muted-foreground">units sold</span>
+                        <span className="text-xs text-muted-foreground">
+                          units sold
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -330,11 +334,13 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
                 <Package className="h-6 w-6 text-secondary" />
                 Department Overview
               </CardTitle>
-              <CardDescription>Inventory by department</CardDescription>
+              <CardDescription>Medicine by department</CardDescription>
             </CardHeader>
             <CardContent>
               {overviewData.departments.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No department data available.</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No department data available.
+                </p>
               ) : (
                 <div className="space-y-4">
                   {overviewData.departments.map((dept, index) => (
@@ -349,7 +355,9 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
                         <div className="text-2xl font-bold text-secondary">
                           {dept.total}
                         </div>
-                        <span className="text-xs text-muted-foreground">items</span>
+                        <span className="text-xs text-muted-foreground">
+                          items
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -359,42 +367,56 @@ const user: any = jwtDecode(localStorage.getItem("access_token") || "");
           </Card>
         </div>
 
-        <Card className="shadow-lg bg-gradient-to-r from-primary/10 to-secondary/10">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-foreground">
-              Total Revenue Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-card rounded-lg shadow">
-                <p className="text-sm text-muted-foreground mb-2">Today's Sales</p>
-                <p className="text-3xl font-bold text-primary">
-                  Birr {overviewData.sales.revenue_today.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {overviewData.sales.today_sales_qty} transactions
-                </p>
+        {user.role == "admin" && (
+          <Card className="shadow-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-foreground">
+                Total Revenue Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-card rounded-lg shadow">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Today's Sales
+                  </p>
+                  <p className="text-3xl font-bold text-primary">
+                    Birr {overviewData.sales.revenue_today.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {overviewData.sales.today_sales_qty} transactions
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-card rounded-lg shadow">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Total Revenue
+                  </p>
+                  <p className="text-3xl font-bold text-secondary">
+                    Birr {overviewData.sales.total_revenue.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {overviewData.sales.total_sales_qty} total transactions
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-card rounded-lg shadow">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Average Order
+                  </p>
+                  <p className="text-3xl font-bold text-accent">
+                    Birr{" "}
+                    {(
+                      overviewData.sales.total_revenue /
+                        overviewData.sales.total_sales_qty || 0
+                    ).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    per transaction
+                  </p>
+                </div>
               </div>
-              <div className="text-center p-4 bg-card rounded-lg shadow">
-                <p className="text-sm text-muted-foreground mb-2">Total Revenue</p>
-                <p className="text-3xl font-bold text-secondary">
-                  Birr {overviewData.sales.total_revenue.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {overviewData.sales.total_sales_qty} total transactions
-                </p>
-              </div>
-              <div className="text-center p-4 bg-card rounded-lg shadow">
-                <p className="text-sm text-muted-foreground mb-2">Average Order</p>
-                <p className="text-3xl font-bold text-accent">
-                  Birr {(overviewData.sales.total_revenue / overviewData.sales.total_sales_qty || 0).toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">per transaction</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

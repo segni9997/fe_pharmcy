@@ -92,7 +92,7 @@ export function AnalyticsDashboard() {
       { Metric: "Total Revenue", Value: analyticsData.summary.total_revenue.toFixed(2) },
       { Metric: "Total Transactions", Value: analyticsData.summary.total_transactions },
       { Metric: "Avg. Order Value", Value: analyticsData.summary.avg_order_value.toFixed(2) },
-      { Metric: "Inventory Value", Value: analyticsData.summary.inventory_value.toFixed(2) },
+      { Metric: "Medicine Value", Value: analyticsData.summary.inventory_value.toFixed(2) },
     ];
     const wsSummary = XLSX.utils.json_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
@@ -103,7 +103,11 @@ export function AnalyticsDashboard() {
 
     // Inventory by Category sheet
     const wsInventoryCategory = XLSX.utils.json_to_sheet(analyticsData.inventory_by_category);
-    XLSX.utils.book_append_sheet(wb, wsInventoryCategory, "Inventory by Category");
+    XLSX.utils.book_append_sheet(
+      wb,
+      wsInventoryCategory,
+      "Medicine by Category"
+    );
 
     // Top Selling Products sheet
     const wsTopSelling = XLSX.utils.json_to_sheet(analyticsData.top_selling);
@@ -135,13 +139,24 @@ export function AnalyticsDashboard() {
       { Metric: "Out of Stock", Value: analyticsData.inventory_health.stock_out },
     ];
     const wsInventoryHealth = XLSX.utils.json_to_sheet(inventoryHealthData);
-    XLSX.utils.book_append_sheet(wb, wsInventoryHealth, "Inventory Health");
+    XLSX.utils.book_append_sheet(wb, wsInventoryHealth, "Medicine Health");
 
     // Performance Metrics sheet
     const performanceMetricsData = [
-      { Metric: "Profit Margin", Value: analyticsData.performance_metrics.profit_margin.toFixed(2) + "%" },
-      { Metric: "Inventory Turnover", Value: analyticsData.performance_metrics.inventory_turnover.toFixed(2) },
-      { Metric: "Customer Satisfaction", Value: analyticsData.performance_metrics.customer_satisfaction.toFixed(1) + "/5" },
+      {
+        Metric: "Profit Margin",
+        Value: analyticsData.performance_metrics.profit_margin.toFixed(2) + "%",
+      },
+      {
+        Metric: "Medicine Turnover",
+        Value: analyticsData.performance_metrics.inventory_turnover.toFixed(2),
+      },
+      {
+        Metric: "Customer Satisfaction",
+        Value:
+          analyticsData.performance_metrics.customer_satisfaction.toFixed(1) +
+          "/5",
+      },
     ];
     const wsPerformanceMetrics = XLSX.utils.json_to_sheet(performanceMetricsData);
     XLSX.utils.book_append_sheet(wb, wsPerformanceMetrics, "Performance Metrics");
@@ -179,7 +194,6 @@ export function AnalyticsDashboard() {
       <header className="border-b bg-background shadow-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-          
             <h1 className="md:text-3xl hidden md:flex text-lg font-bold text-primary">
               Analytics Dashboard
             </h1>
@@ -206,7 +220,6 @@ export function AnalyticsDashboard() {
               className="border-primary text-primary hover:bg-primary/10"
             >
               <Download className="h-5 w-5 mr-2" />
-             
             </Button>
             <Button
               variant="outline"
@@ -222,79 +235,81 @@ export function AnalyticsDashboard() {
       </header>
 
       <main className="md:p-6 p-2 space-y-6 max-w-8xl mx-auto">
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-foreground opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                Birr {analyticsData.summary.total_revenue.toFixed(2)}
-              </div>
-              <div className="flex items-center text-xs opacity-80 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +12.5% from last period
-              </div>
-            </CardContent>
-          </Card>
+        {user?.role == "admin" && (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-foreground opacity-80" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  Birr {analyticsData.summary.total_revenue.toFixed(2)}
+                </div>
+                <div className="flex items-center text-xs opacity-80 mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +12.5% from last period
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Transactions
-              </CardTitle>
-              <Users className="h-4 w-4 text-foreground opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {analyticsData.summary.total_transactions}
-              </div>
-              <div className="flex items-center text-xs opacity-80 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +8.2% from last period
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Transactions
+                </CardTitle>
+                <Users className="h-4 w-4 text-foreground opacity-80" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analyticsData.summary.total_transactions}
+                </div>
+                <div className="flex items-center text-xs opacity-80 mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +8.2% from last period
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Avg. Order Value
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-foreground opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                Birr {analyticsData.summary.avg_order_value.toFixed(2)}
-              </div>
-              <div className="flex items-center text-xs opacity-80 mt-1">
-                <TrendingDown className="h-3 w-3 mr-1" />
-                -2.1% from last period
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Avg. Order Value
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-foreground opacity-80" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  Birr {analyticsData.summary.avg_order_value.toFixed(2)}
+                </div>
+                <div className="flex items-center text-xs opacity-80 mt-1">
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                  -2.1% from last period
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Inventory Value
-              </CardTitle>
-              <Package className="h-4 w-4 text-foreground opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                Birr {analyticsData.summary.inventory_value.toFixed(2)}
-              </div>
-              <div className="flex items-center text-xs opacity-80 mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +5.4% from last period
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Medicine Value
+                </CardTitle>
+                <Package className="h-4 w-4 text-foreground opacity-80" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  Birr {analyticsData.summary.inventory_value.toFixed(2)}
+                </div>
+                <div className="flex items-center text-xs opacity-80 mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +5.4% from last period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           <Card className="shadow-lg">
@@ -314,7 +329,10 @@ export function AnalyticsDashboard() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={analyticsData.sales_trend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border)"
+                    />
                     <XAxis dataKey="day" stroke="var(--color-foreground)" />
                     <YAxis stroke="var(--color-foreground)" />
                     <ChartTooltip content={<ChartTooltipContent />} />
@@ -335,8 +353,8 @@ export function AnalyticsDashboard() {
 
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Inventory by Category</CardTitle>
-              <CardDescription>Distribution of inventory value</CardDescription>
+              <CardTitle>Medicine by Category</CardTitle>
+              <CardDescription>Distribution of medicine value</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -364,14 +382,16 @@ export function AnalyticsDashboard() {
                       fill="var(--color-primary)"
                       dataKey="value"
                     >
-                      {analyticsData.inventory_by_category.map(
-                        (_, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={index % 2 === 0 ? "var(--color-primary)" : "var(--color-secondary)"}
-                          />
-                        )
-                      )}
+                      {analyticsData.inventory_by_category.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            index % 2 === 0
+                              ? "var(--color-primary)"
+                              : "var(--color-secondary)"
+                          }
+                        />
+                      ))}
                     </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </PieChart>
@@ -401,7 +421,10 @@ export function AnalyticsDashboard() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analyticsData.top_selling} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border)"
+                    />
                     <XAxis type="number" stroke="var(--color-foreground)" />
                     <YAxis
                       dataKey="medicine__brand_name"
@@ -488,7 +511,10 @@ export function AnalyticsDashboard() {
                               Expires soon
                             </p>
                           </div>
-                          <Badge variant="secondary" className="text-xs bg-yellow-600">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-yellow-600"
+                          >
                             Near Expiry
                           </Badge>
                         </div>
@@ -535,7 +561,7 @@ export function AnalyticsDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-secondary" />
-                Inventory Health
+                Medicine Health
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -565,35 +591,47 @@ export function AnalyticsDashboard() {
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-accent" />
-                Performance Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Profit Margin:</span>
-                <span className="font-semibold text-lg">
-                  {analyticsData.performance_metrics.profit_margin.toFixed(2)}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Inventory Turnover:</span>
-                <span className="font-semibold text-lg">
-                  {analyticsData.performance_metrics.inventory_turnover.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Customer Satisfaction:</span>
-                <span className="font-semibold text-lg">
-                  {analyticsData.performance_metrics.customer_satisfaction.toFixed(1)}/5
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+
+          {user?.role === "admin" && (
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-accent" />
+                  Performance Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Profit Margin:</span>
+                  <span className="font-semibold text-lg">
+                    {analyticsData.performance_metrics.profit_margin.toFixed(2)}
+                    %
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">
+                    Medicine Turnover:
+                  </span>
+                  <span className="font-semibold text-lg">
+                    {analyticsData.performance_metrics.inventory_turnover.toFixed(
+                      2
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">
+                    Customer Satisfaction:
+                  </span>
+                  <span className="font-semibold text-lg">
+                    {analyticsData.performance_metrics.customer_satisfaction.toFixed(
+                      1
+                    )}
+                    /5
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

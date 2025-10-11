@@ -63,6 +63,10 @@ export const saleApi = createApi({
       {
         customer_name?: string;
         customer_phone?: string;
+        customer_address?: string;
+        vat_regno?: string;
+        fno?: string;
+        payment_method?: string;
         discount_percentage: number;
         sold_by: string;
         items: {

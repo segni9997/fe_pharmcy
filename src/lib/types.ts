@@ -35,6 +35,8 @@ export interface Refill {
   batch_number: string;
   batch_no: string;
   manufacture_date: string;
+  company_name: string;
+  FSNO: string;
   expire_date: string;
   price: string;
   quantity: number;
@@ -86,6 +88,7 @@ export interface Sale {
   customer_address?: string;
   vat_regno?: string;
   fno?: string;
+  payment_method?: string;
   discounted_amount: string;
   base_price: string;
   discount_percentage: string;

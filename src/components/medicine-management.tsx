@@ -104,6 +104,8 @@ export function MedicineManagement() {
     batch_no: "",
     manufacture_date: "",
     department: "",
+    company_name: "",
+    FSNO:"",
     unit_type: "Strip" as MedicineUnit,
     number_of_boxes: "",
     strips_per_box: "",
@@ -160,6 +162,8 @@ export function MedicineManagement() {
     medicine: "",
     department: "",
     manufacture_date: "",
+    company_name: "",
+    FSNO:"",
     expire_date: "",
     price: "",
     number_of_boxes: "",
@@ -194,7 +198,8 @@ export function MedicineManagement() {
     { value: "Of30", label: "Of 30" },
     { value: "Suppository", label: "Suppository" },
     { value: "Pcs", label: "Pcs" },
-    { value: "Tablet", label: "Tablet" }
+    { value: "Tablet", label: "Tablet" },
+    { value: "PK", label:"PK" },
   ];
   const calculateTotalPieces = () => {
     const boxes = Number.parseInt(formData.number_of_boxes) || 0;
@@ -240,10 +245,13 @@ export function MedicineManagement() {
           medicine.generic_name
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          medicine.batch_no.toLowerCase().includes(searchTerm.toLowerCase());
+          medicine.batch_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          medicine.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          medicine.FSNO?.toLowerCase().includes(searchTerm.toLowerCase())
+        
         const matchesCategory =
-          selectedCategory === "all" || medicine.department.toString() === selectedCategory;
-       
+          selectedCategory === "all" || medicine.department.toString() === selectedCategory; 
+        
         return matchesSearch && matchesCategory ;
       }) || []
     );
@@ -278,8 +286,10 @@ export function MedicineManagement() {
       batch_no:formData.batch_no || "",
       manufacture_date:formData.manufacture_date || "",
       department:formData.department || "",
-      unit_type: "Trip" as MedicineUnit,
+      unit_type: "Strip" as MedicineUnit,
       number_of_boxes: "",
+      company_name: "",
+      FSNO:"",
       strips_per_box: "",
       pieces_per_strip: "",
       piece_price: "",
@@ -305,6 +315,8 @@ export function MedicineManagement() {
           generic_name: formData.generic_name,
           batch_no: formData.batch_no,
           manufacture_date: formData.manufacture_date,
+          company_name: formData.company_name,
+          FSNO: formData.FSNO,
           expire_date: formData.expire_date,
           price: formData.price,
           stock: Number.parseInt(formData.stock) || calculateTotalPieces(),
@@ -328,6 +340,8 @@ export function MedicineManagement() {
         stock: Number.parseInt(formData.stock) || calculateTotalPieces(),
         department: formData.department,
         unit: formData.unit_type,
+        company_name: formData.company_name,
+        FSNO: formData.FSNO,
       };
 
       try {
@@ -352,6 +366,8 @@ export function MedicineManagement() {
       manufacture_date: medicine.manufacture_date,
       department: medicine.department.toString(),
       unit_type: medicine.unit_type || "Strip",
+      company_name: medicine.company_name || "",
+      FSNO: medicine.FSNO || "",
       number_of_boxes: medicine.number_of_boxes?.toString() || "",
       strips_per_box: medicine.strips_per_box?.toString() || "",
       pieces_per_strip: medicine.pieces_per_strip?.toString() || "",
@@ -385,6 +401,8 @@ export function MedicineManagement() {
       medicine: medicine.id,
       department: medicine.department,
       manufacture_date: "",
+      company_name: medicine.company_name || "",
+      FSNO: medicine.FSNO || "",
       expire_date: "",
       price: medicine.price,
       number_of_boxes: "",
@@ -414,6 +432,7 @@ export function MedicineManagement() {
         quantity: quantityToAdd,
         batch_no: refillFormData.batch_no,
         department: refillFormData.department,
+     
         manufacture_date: refillFormData.manufacture_date,
         expire_date: refillFormData.expire_date,
         price: refillFormData.price,
@@ -462,9 +481,11 @@ export function MedicineManagement() {
       "Generic Name": med.generic_name || "",
       "Code No": med.code_no,
       Unit: getCategoryName(med.department.toString()),
+      "Company Name": med.company_name || "",
+      "FSNO": med.FSNO || "",
       Batch: med.batch_no,
       Price: med.price.toString(),
-      
+
       Stock: med.stock.toString(),
       "Expiry Date": new Date(med.expire_date).toLocaleDateString(),
       Status: getExpiryStatus(new Date(med.expire_date)).label,
@@ -514,7 +535,7 @@ export function MedicineManagement() {
                       Add Medicine
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>
                         {editingMedicine ? "Edit Medicine" : "Add New Medicine"}
@@ -607,7 +628,50 @@ export function MedicineManagement() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="unit">Unit *</Label>
+                            <Label htmlFor="expiryDate">Expiry Date *</Label>
+                            <Input
+                              id="expiryDate"
+                              type="date"
+                              value={formData.expire_date}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  expire_date: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="grid  grid-cols-2  gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="unit_type">Unit Type *</Label>
+                            <Select
+                              value={formData.unit_type}
+                              onValueChange={(value) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  unit_type: value as MedicineUnit,
+                                }))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {unitTypeOptions.map((unitType) => (
+                                  <SelectItem
+                                    key={unitType.value}
+                                    value={unitType.value}
+                                  >
+                                    {unitType.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="unit">Department *</Label>
                             <Select
                               value={formData.department}
                               onValueChange={(value) =>
@@ -618,7 +682,7 @@ export function MedicineManagement() {
                               }
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select unit" />
+                                <SelectValue placeholder="Select Dept" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Units?.results.map((category) => (
@@ -634,31 +698,33 @@ export function MedicineManagement() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="unit_type">Unit Type *</Label>
-                          <Select
-                            value={formData.unit_type}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                unit_type: value as MedicineUnit,
-                              }))
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select unit type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {unitTypeOptions.map((unitType) => (
-                                <SelectItem
-                                  key={unitType.value}
-                                  value={unitType.value}
-                                >
-                                  {unitType.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="company_name">Company Name</Label>
+                            <Input
+                              id="company_name"
+                              value={formData.company_name}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  company_name: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="FSNO">FSNO</Label>
+                            <Input
+                              id="FSNO"
+                              value={formData.FSNO}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  FSNO: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
                         </div>
 
                         <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
@@ -807,22 +873,6 @@ export function MedicineManagement() {
                             </p>
                           </div>
                         )}
-
-                        <div className="space-y-2">
-                          <Label htmlFor="expiryDate">Expiry Date *</Label>
-                          <Input
-                            id="expiryDate"
-                            type="date"
-                            value={formData.expire_date}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                expire_date: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
                       </div>
                       <DialogFooter>
                         <Button
@@ -841,16 +891,16 @@ export function MedicineManagement() {
                 </Dialog>
                 <Sheet open={isUnitSheetOpen} onOpenChange={setIsUnitSheetOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="outline">View Unit</Button>
+                    <Button variant="outline">View Department</Button>
                   </SheetTrigger>
                   <SheetContent
                     side="left"
                     className="w-full sm:w-[540px] max-w-full sm:max-w-[540px]"
                   >
                     <SheetHeader>
-                      <SheetTitle>Unit Management</SheetTitle>
+                      <SheetTitle>Department Management</SheetTitle>
                       <SheetDescription>
-                        View and manage units for medicines
+                        View and manage Departments for medicines
                       </SheetDescription>
                     </SheetHeader>
                     <div className="py-4 overflow-x-auto">
@@ -916,7 +966,6 @@ export function MedicineManagement() {
                                             toast.error(
                                               "Failed to update unit"
                                             );
-                                          
                                           }
                                         }}
                                       >
@@ -994,7 +1043,6 @@ export function MedicineManagement() {
                                                         toast.error(
                                                           "Failed to delete unit"
                                                         );
-                                                        
                                                       } finally {
                                                         toast.dismiss(t);
                                                       }
@@ -1037,20 +1085,20 @@ export function MedicineManagement() {
                   <DialogTrigger asChild>
                     <Button variant="outline" onClick={resetUnitForm}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Unit
+                      Add Department
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Add New Unit</DialogTitle>
+                      <DialogTitle>Add New Department</DialogTitle>
                       <DialogDescription>
-                        Enter the details for the new unit
+                        Enter the details for the new Department
                       </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleUnitSubmit}>
                       <div className="grid gap-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="unitName">Unit Code *</Label>
+                          <Label htmlFor="unitName">Department Code *</Label>
                           <Input
                             id="UnitCode"
                             value={unitFormData.code}
@@ -1060,12 +1108,12 @@ export function MedicineManagement() {
                                 code: e.target.value,
                               }))
                             }
-                            placeholder="Enter unit Code"
+                            placeholder="Enter Department Code"
                             required
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="unitName">Unit Name *</Label>
+                          <Label htmlFor="unitName">Department Name *</Label>
                           <Input
                             id="unitName"
                             value={unitFormData.name}
@@ -1075,7 +1123,7 @@ export function MedicineManagement() {
                                 name: e.target.value,
                               }))
                             }
-                            placeholder="Enter unit name"
+                            placeholder="Enter Department name"
                             required
                           />
                         </div>
@@ -1198,6 +1246,35 @@ export function MedicineManagement() {
                             placeholder="Enter batch number"
                             required
                           />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="company_name">Company Name</Label>
+                            <Input
+                              id="company_name"
+                              value={refillFormData.company_name}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  company_name: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="FSNO">FSNO</Label>
+                            <Input
+                              id="FSNO"
+                              value={refillFormData.FSNO}
+                              onChange={(e) =>
+                                setRefillFormData((prev) => ({
+                                  ...prev,
+                                  FSNO: e.target.value,
+                                }))
+                              }
+                            />
+                          </div>
                         </div>
 
                         <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
@@ -1469,6 +1546,10 @@ export function MedicineManagement() {
                       Department
                     </TableHead>
                     <TableHead className="text-foreground">Unit Type</TableHead>
+                    <TableHead className="text-foreground">
+                      Company Name
+                    </TableHead>
+                    <TableHead className="text-foreground">FSNO</TableHead>
                     <TableHead className="text-foreground">Batch</TableHead>
                     <TableHead className="text-foreground">Price</TableHead>
 
@@ -1523,6 +1604,12 @@ export function MedicineManagement() {
                         </TableCell>
                         <TableCell className="text-foreground">
                           {medicine.unit || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {medicine.company_name || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {medicine.FSNO || "N/A"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {medicine.batch_no}

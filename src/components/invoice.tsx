@@ -43,29 +43,29 @@ const toWords = new ToWords({
   const [vat, setVat] = useState("");
   const [grandTotal, setGrandTotal] = useState("");
   const [amountInWords, setAmountInWords] = useState("");
-  const [paymentMode, setPaymentMode] = useState("cash");
+  const [paymentMode, setPaymentMode] = useState("");
   const [preparedBy, setPreparedBy] = useState("");
   const [cashierSign, setCashierSign] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [vatRegno, setVatRegno] = useState("");
-  const [FNO, setFno] = useState("");
+  const [__, setFno] = useState("");
 
   const location = useLocation();
 
   const saleIdFromState = location.state?.saleId;
   const { data: saleDetail } = useGetSaleByIdQuery(saleIdFromState || "", { skip: !saleIdFromState });
-
   useEffect(() => {
     const sale = location.state?.sale;
     const { address, vatreg, fno } = location.state || {};
     if(address) setCustomerAddress(address);
     if(vatreg) setVatRegno(vatreg);
-    if(fno) setFno(fno);
+    if(fno) setFno("");
     if (sale) {
       setDate(new Date(sale.sale_date).toLocaleDateString());
       setToPhone(sale.customer_phone || "");
       setCustomerName(sale.customer_name || "");
+      setPaymentMode(sale.payment_method || "")
 
 
       const saleItems = sale.items.map((item: any, index: number) => ({
@@ -96,10 +96,11 @@ const toWords = new ToWords({
   useEffect(() => {
     if (saleDetail) {
       setDate(new Date(saleDetail.sale_date).toLocaleDateString());
-      setFno(saleDetail.fno || "");
+      setFno("");
       setCustomerAddress(saleDetail.customer_address || saleDetail.customer_name || "");
       setToPhone(saleDetail.customer_phone || "");
       setVatRegno(saleDetail.vat_regno || "");
+      setPaymentMode(saleDetail.payment_method || "")
 
 
       const saleItems = saleDetail.items.map((item: any, index: number) => ({
@@ -238,7 +239,7 @@ const toWords = new ToWords({
               <label>F.No:</label>
               <input
                 type="text"
-                value={FNO || "_________________"}
+                value={"_________________"}
                 onChange={(e) => setFno(e.target.value)}
               />
             </div>
@@ -459,19 +460,8 @@ const toWords = new ToWords({
             />
           </div>
           <div className="payment-field">
-            <label>Method of Payment</label>
-            <div>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={paymentMode === "cash"}
-                  onChange={(e) =>
-                    setPaymentMode(e.target.checked ? "cash" : "")
-                  }
-                />
-                Cash
-              </label>
-            </div>
+            <label>Method of Payment</label>: <strong className="text-[10px]">{paymentMode}</strong>
+           
           </div>
           <div className="payment-field">
             <label>Cashier sign</label>

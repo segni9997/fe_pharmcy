@@ -115,6 +115,7 @@ export function POSSystem() {
   const [customerAddress, setCustomerAddress] = useState("");
   const [vatRegno, setVatRegno] = useState("");
   const [fno, setFno] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [discount, setDiscount] = useState(0);
   // const [showReceipt, setShowReceipt] = useState(false);
   // const [lastSale, setLastSale] = useState<Sale | null>(null);
@@ -202,6 +203,7 @@ export function POSSystem() {
     setCustomerAddress("");
     setVatRegno("");
     setFno("");
+    setPaymentMethod("");
     setDiscount(0);
   };
 
@@ -214,6 +216,7 @@ export function POSSystem() {
       customer_address: customerAddress || "",
       vat_regno: vatRegno || "",
       fno: fno || "",
+      payment_method: paymentMethod || "",
       discount_percentage: discount,
       sold_by: user?.id || "",
       items: cart.map((item) => ({
@@ -251,7 +254,9 @@ export function POSSystem() {
       <header className="border-b bg-card">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <h1 className="md:text-3xl text-lg font-bold text-primary">Point of Sale</h1>
+            <h1 className="md:text-3xl text-lg font-bold text-primary">
+              Point of Sale
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="text-xs">
@@ -415,7 +420,9 @@ export function POSSystem() {
                       {cart.map((item) => (
                         <TableRow key={item.medicine.id}>
                           <TableCell>{item.medicine.brand_name}</TableCell>
-                          <TableCell>Birr {item.unitPrice.toFixed(2)}</TableCell>
+                          <TableCell>
+                            Birr {item.unitPrice.toFixed(2)}
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button
@@ -457,7 +464,9 @@ export function POSSystem() {
                               </Button>
                             </div>
                           </TableCell>
-                          <TableCell>Birr {item.totalPrice.toFixed(2)}</TableCell>
+                          <TableCell>
+                            Birr {item.totalPrice.toFixed(2)}
+                          </TableCell>
                           <TableCell>
                             <Button
                               size="sm"
@@ -480,63 +489,89 @@ export function POSSystem() {
               <CardHeader>
                 <CardTitle>Customer Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="customerName">Customer Name (Optional)</Label>
-                  <Input
-                    id="customerName"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter customer name"
-                  />
+              <CardContent className="space-y-8">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="customerName">
+                      Customer Name (Optional)
+                    </Label>
+                    <Input
+                      id="customerName"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="customerPhone">
+                      Phone Number (Optional)
+                    </Label>
+                    <Input
+                      id="customerPhone"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customerPhone">Phone Number (Optional)</Label>
-                  <Input
-                    id="customerPhone"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Enter phone number"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="customerAddress">Address (Optional)</Label>
+                    <Input
+                      id="customerAddress"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      placeholder="Enter address"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vatRegno">VAT Reg No (Optional)</Label>
+                    <Input
+                      id="vatRegno"
+                      value={vatRegno}
+                      onChange={(e) => setVatRegno(e.target.value)}
+                      placeholder="Enter VAT Reg No"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customerAddress">Address (Optional)</Label>
-                  <Input
-                    id="customerAddress"
-                    value={customerAddress}
-                    onChange={(e) => setCustomerAddress(e.target.value)}
-                    placeholder="Enter address"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vatRegno">VAT Reg No (Optional)</Label>
-                  <Input
-                    id="vatRegno"
-                    value={vatRegno}
-                    onChange={(e) => setVatRegno(e.target.value)}
-                    placeholder="Enter VAT Reg No"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fno">F.No (Optional)</Label>
-                  <Input
-                    id="fno"
-                    value={fno}
-                    onChange={(e) => setFno(e.target.value)}
-                    placeholder="Enter F.No"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discount">Discount (%)</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                    placeholder="0"
-                  />
+                <div className="grid md:grid-cols-3 grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="fno">F.No (Optional)</Label>
+                    <Input
+                      id="fno"
+                      value={fno}
+                      onChange={(e) => setFno(e.target.value)}
+                      placeholder="Enter F.No"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={setPaymentMethod}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem defaultChecked value="cash">Cash</SelectItem>
+                        <SelectItem value="transfer">Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="discount">Discount (%)</Label>
+                    <Input
+                      id="discount"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -589,7 +624,6 @@ export function POSSystem() {
       </main>
 
       {/* Receipt Dialog */}
-     
     </div>
   );
 }

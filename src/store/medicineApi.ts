@@ -21,7 +21,8 @@ export type MedicineUnit =
   | "Of30"
   | "Suppository"
   | "Pcs"
-  | "Tablet";
+  | "Tablet"
+  | "PK";
 
 export type Medicine = {
   id: string;
@@ -30,6 +31,8 @@ export type Medicine = {
   generic_name: string;
   batch_no: string;
   manufacture_date: string;
+  company_name?: string;
+  FSNO?: string;
   expire_date: string;
   price: string;
   stock: number;
