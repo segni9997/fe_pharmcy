@@ -2,30 +2,47 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { pagination } from "./saleApi";
 import { API_URL } from "./authApi";
 
-export interface Medicine {
+export type MedicineUnit =
+  | "Bottle"
+  | "Sachet"
+  | "Ampule"
+  | "Vial"
+  | "Tin"
+  | "Strip"
+  | "Tube"
+  | "Box"
+  | "Cosmetics"
+  | "10x100"
+  | "Of10"
+  | "Of20"
+  | "Of14"
+  | "Of28"
+  | "Of30"
+  | "Suppository"
+  | "Pcs"
+  | "Tablet";
+
+export type Medicine = {
   id: string;
-  is_out_of_stock: boolean;
-  is_expired: boolean;
-  is_nearly_expired: boolean;
   code_no: string;
   brand_name: string;
   generic_name: string;
   batch_no: string;
-  manufacture_date: string; // ISO date string
-  expire_date: string; // ISO date string
-  price: string; // string to keep consistent with user input, e.g. "10.50"
+  manufacture_date: string;
+  expire_date: string;
+  price: string;
   stock: number;
-  low_stock_threshold: number;
-  attachment: string | null;
-  created_at: string;
-  updated_at: string;
   department: string;
-  created_by: string;
-  refill_count:number
-}
-
+  attachment?: string;
+  refill_count: number;
+  unit_type: MedicineUnit;
+  number_of_boxes?: number;
+  strips_per_box?: number;
+  pieces_per_strip?: number;
+  piece_price?: number;
+  unit: string;
+};
 interface PaginatedMedicinesResponse {
-  
   results: Medicine[];
   pagination: pagination;
 }
@@ -47,11 +64,15 @@ export const medicineApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getMedicines: builder.query<PaginatedMedicinesResponse, { pageNumber?: number; pageSize?: number }>({
+    getMedicines: builder.query<
+      PaginatedMedicinesResponse,
+      { pageNumber?: number; pageSize?: number, unit?:string }
+    >({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
         queryParams.append("pageNumber", String(params.pageNumber ?? 1));
         queryParams.append("page_size", String(params.pageSize ?? 10));
+        queryParams.append("unit", params.unit ?? "");
         const url = `/pharmacy/medicines/?${queryParams.toString()}`;
         return {
           url,
@@ -72,14 +93,11 @@ export const medicineApi = createApi({
         body,
       }),
     }),
-    updateMedicine: builder.mutation<
-      Medicine,
-      Partial<Medicine>
-    >({
-      query: ({id, ...rest}) => ({
+    updateMedicine: builder.mutation<Medicine, Partial<Medicine>>({
+      query: ({ id, ...rest }) => ({
         url: `/pharmacy/medicines/${id}/`,
         method: "PUT",
-        body:rest,
+        body: rest,
       }),
     }),
     deleteMedicine: builder.mutation<void, string>({

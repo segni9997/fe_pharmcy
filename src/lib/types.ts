@@ -40,6 +40,7 @@ export interface Refill {
   quantity: number;
   refill_date: string;
   end_date: string | null;
+  code_no: string;
 }
 
 export interface Medicine {
@@ -82,6 +83,9 @@ export interface Sale {
   id: string;
   customer_name?: string;
   customer_phone?: string;
+  customer_address?: string;
+  vat_regno?: string;
+  fno?: string;
   discounted_amount: string;
   base_price: string;
   discount_percentage: string;

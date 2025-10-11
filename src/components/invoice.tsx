@@ -21,12 +21,10 @@ const toWords = new ToWords({
     return text.replace(/dollars?/gi, "Birr").replace(/cents?/gi, "cents");
   };
   const [date, setDate] = useState("");
-  const [fNo, setFNo] = useState("");
-  const [fromAddress] = useState(user?.username || "");
+  // const [fromAddress] = useState(user?.username || "");
   const [fromTIN, setFromTIN] = useState("0024397833");
-  const [toAddress, setToAddress] = useState("");
+  const [toPhone, setToPhone] = useState("");
   const [_, setToHouseNo] = useState("");
-  const [toVATReg, setToVATReg] = useState("");
 
   const [items, setItems] = useState(
     Array(10)
@@ -48,6 +46,10 @@ const toWords = new ToWords({
   const [paymentMode, setPaymentMode] = useState("cash");
   const [preparedBy, setPreparedBy] = useState("");
   const [cashierSign, setCashierSign] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [vatRegno, setVatRegno] = useState("");
+  const [FNO, setFno] = useState("");
 
   const location = useLocation();
 
@@ -56,12 +58,14 @@ const toWords = new ToWords({
 console.log("saleDetail", saleDetail);
   useEffect(() => {
     const sale = location.state?.sale;
+    const { address, vatreg, fno } = location.state || {};
+    if(address) setCustomerAddress(address);
+    if(vatreg) setVatRegno(vatreg);
+    if(fno) setFno(fno);
     if (sale) {
       setDate(new Date(sale.sale_date).toLocaleDateString());
-      // setFNo(sale.id);
-      // setToAddress(sale.customer_name || "");
-      // setToHouseNo(sale.customer_phone || "");
-      setToAddress(sale.customer_name || "");
+      setToPhone(sale.customer_phone || "");
+      setCustomerName(sale.customer_name || "");
 
 
       const saleItems = sale.items.map((item: any, index: number) => ({
@@ -82,8 +86,9 @@ console.log("saleDetail", saleDetail);
       setSubTotal(totalAfterDiscount.toFixed(2));
       setVat("0.00"); // No VAT in POS
       setGrandTotal(totalAfterDiscount.toFixed(2));
-   const words = convertToBirrWords(totalAfterDiscount);
-   setAmountInWords(words);
+
+      const words = convertToBirrWords(totalAfterDiscount);
+      setAmountInWords(words);
       console.log(convertToWords(Number(totalAfterDiscount)));
       setPreparedBy(sale.discounted_by || "");  
     }
@@ -92,6 +97,10 @@ console.log("saleDetail", saleDetail);
   useEffect(() => {
     if (saleDetail) {
       setDate(new Date(saleDetail.sale_date).toLocaleDateString());
+      setFno(saleDetail.fno || "");
+      setCustomerAddress(saleDetail.customer_address || saleDetail.customer_name || "");
+      setToPhone(saleDetail.customer_phone || "");
+      setVatRegno(saleDetail.vat_regno || "");
 
 
       const saleItems = saleDetail.items.map((item: any, index: number) => ({
@@ -106,7 +115,15 @@ console.log("saleDetail", saleDetail);
       setItems(saleItems);
 
       // Calculate totals based on sale
-      const subTotalValue = parseFloat(saleDetail.base_price);
+      // const subTotalValue = parseFloat(saleDetail.base_price);
+      const subTotalValue = Number(
+        ( saleDetail?.items?.reduce(
+              (acc: number, item: any) =>
+                acc + (parseFloat(item.total_price) || 0),
+              0
+            ) || 0
+        ).toFixed(2)
+      );
       const discountAmount = parseFloat(saleDetail.discounted_amount);
       const totalAfterDiscount = subTotalValue - discountAmount;
       setSubTotal(totalAfterDiscount.toFixed(2));
@@ -114,8 +131,22 @@ console.log("saleDetail", saleDetail);
       setGrandTotal(totalAfterDiscount.toFixed(2));
 
       setPreparedBy(saleDetail.discounted_by || "");
+         const words = convertToBirrWords(totalAfterDiscount);
+   setAmountInWords(words);
+      console.log(convertToWords(Number(totalAfterDiscount)));
+      setPreparedBy(saleDetail.discounted_by || "");
+
     }
   }, [saleDetail]);
+
+  useEffect(() => {
+    const sub = parseFloat(subTotal) || 0;
+    const vatPercent = parseFloat(vat) || 0;
+    const vatAmount = sub * (vatPercent / 100);
+    setGrandTotal((sub + vatAmount).toFixed(2));
+    const words = convertToBirrWords(sub + vatAmount);
+    setAmountInWords(words);
+  }, [subTotal, vat]);
 
   type ItemField = "description" | "unit" | "qty" | "unitPrice" | "totalPrice";
 
@@ -146,8 +177,8 @@ console.log("saleDetail", saleDetail);
     }, 0);
 
     setSubTotal(sum.toFixed(2));
-    const vatAmount = sum * 0.15; // 15% VAT
-    setVat(vatAmount.toFixed(2));
+    setVat("15.00"); // 15% VAT
+    const vatAmount = sum * 0.15;
     setGrandTotal((sum + vatAmount).toFixed(2));
 
     // Convert grand total to words using to-words module
@@ -162,10 +193,10 @@ console.log("saleDetail", saleDetail);
   const handleClear = () => {
     if (confirm("Are you sure you want to clear all fields?")) {
       setDate("");
-      setFNo("");
-      setToAddress("");
+      setFno("");
+      setCustomerAddress("");
       setToHouseNo("");
-      setToVATReg("");
+      setVatRegno("");
       setItems(
         Array(10)
           .fill(null)
@@ -210,8 +241,8 @@ console.log("saleDetail", saleDetail);
               <label>F.No:</label>
               <input
                 type="text"
-                value={fNo}
-                onChange={(e) => setFNo(e.target.value)}
+                value={FNO || "_________________"}
+                onChange={(e) => setFno(e.target.value)}
               />
             </div>
           </div>
@@ -219,22 +250,28 @@ console.log("saleDetail", saleDetail);
 
         <div className="grid grid-cols-2 gap-24">
           <div className="party">
-            <h3>
+            <h4>
               From: &nbsp;
-              <strong>{fromAddress || user?.username || "_________"}</strong>
-            </h3>
+              <strong>
+                {saleDetail?.sold_by
+                  ? saleDetail.sold_by.toUpperCase()
+                  : user?.username
+                  ? user.username.toUpperCase()
+                  : "_________"}
+              </strong>
+            </h4>
             <div className="party-field">
               <label>Address:</label>
               <div className="flex flex-col">
                 <input
                   type="text"
-                  value="LIDETA"
+                  value="LIDETA W.04 H.No 303/2"
                   // onChange={(e) => setFromAddress(e.target.value)}
                   className="w-fit "
                   readOnly
                 />
 
-                <span>W.04 H.No 303/2</span>
+                {/* <span>W.04 H.No 303/2</span> */}
               </div>
             </div>
 
@@ -249,28 +286,45 @@ console.log("saleDetail", saleDetail);
           </div>
 
           <div className="party">
-            <h3>
-              To:{" "}
-              <span>
-                {saleDetail?.customer_name?.toUpperCase() ||  toAddress || "__________"}
-              </span>
-            </h3>
+            <h4>
+              To:
+              <strong>
+                {saleDetail?.customer_name
+                  ? saleDetail.customer_name.toUpperCase()
+                  : customerName.length > 0
+                  ? customerName.toUpperCase()
+                  : "____________________"}
+              </strong>
+            </h4>
             <div className="party-field">
               <label>Address:</label>
               <input
                 type="text"
-                value={ "__________"}
-                onChange={(e) => setToAddress(e.target.value)}
+                value={
+                  customerAddress.length > 0
+                    ? customerAddress
+                    : "__________________"
+                }
+                onChange={(e) => setCustomerAddress(e.target.value)}
               />
               {/* <p>H.No.</p> */}
             </div>
 
             <div className="party-field">
-              <label>Customer's VAT Reg.No</label>
+              <label>Phone:</label>
               <input
                 type="text"
-                value={toVATReg}
-                onChange={(e) => setToVATReg(e.target.value)}
+                value={toPhone || "__________________"}
+                onChange={(e) => setToPhone(e.target.value)}
+              />
+            </div>
+
+            <div className="party-field">
+              <label className="text-[8px]">Customer's VAT Reg.No</label>
+              <input
+                type="text"
+                value={vatRegno || "__________________"}
+                onChange={(e) => setVatRegno(e.target.value)}
               />
             </div>
 
@@ -323,7 +377,9 @@ console.log("saleDetail", saleDetail);
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={item.qty}
                     onChange={(e) =>
                       handleItemChange(index, "qty", e.target.value)
@@ -360,7 +416,13 @@ console.log("saleDetail", saleDetail);
               <tr>
                 <td className="label-cell">VAT</td>
                 <td className="value-cell">
-                  <input type="text" value={vat} readOnly />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={vat}
+                    onChange={(e) => setVat(e.target.value)}
+                  />
                 </td>
               </tr>
               <tr>
@@ -436,7 +498,6 @@ console.log("saleDetail", saleDetail);
             🗑️ Clear Form
           </button>
         </div>
-    
       </div>
     </div>
   );

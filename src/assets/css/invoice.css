@@ -70,13 +70,13 @@
 } */
 
 .party {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .party h3 {
   font-size: 12px;
   margin-bottom: 5px;
-  text-decoration: underline;
+  /* text-decoration: underline; */
 }
 
 .party-field {
@@ -89,18 +89,18 @@
 .party-field label {
   font-weight: bold;
   max-width:fit-content;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .party-field input {
   font-weight: bold;
   max-width:fit-content;
-  font-size: 11px;
+  font-size: 10px;
   text-decoration: underline;
 }
 
 .party-field span {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .invoice-title {
@@ -115,7 +115,7 @@
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .invoice-table th,
@@ -144,7 +144,11 @@
 .invoice-table input:focus {
   outline: 1px solid #4a90e2;
 }
-
+.party-field input:focus {
+  font-weight: bold;
+  max-width:fit-content;
+  font-size: 10px;
+}
 .description-input {
   text-align: left !important;
 }
@@ -193,7 +197,7 @@
 .amount-in-words label {
   font-weight: bold;
   margin-right: 5px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .amount-in-words input {
@@ -202,7 +206,7 @@
   width: calc(100% - 60px);
   font-family: inherit;
   padding: 2px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .payment-section {
@@ -220,7 +224,7 @@
 
 .payment-field label {
   font-weight: bold;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .payment-field input[type="text"] {
@@ -229,7 +233,7 @@
   flex: 1;
   font-family: inherit;
   padding: 2px;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .payment-field input[type="checkbox"] {

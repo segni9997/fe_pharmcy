@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import type { Medicine } from "@/lib/types";
+import type { Medicine } from "@/store/medicineApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/table";
 import {
   useGetMedicinesQuery,
+  type MedicineUnit,
 } from "@/store/medicineApi";
 import {
   useGetUnitsQuery,
@@ -87,9 +88,33 @@ export function POSSystem() {
   const [createSale] = useCreateSaleMutation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedUnitType, setSelectedUnitType] = useState<string>("all");
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  const unitTypeOptions: { value: MedicineUnit; label: string }[] = [
+    { value: "Bottle", label: "Bottle" },
+    { value: "Sachet", label: "Sachet" },
+    { value: "Ampule", label: "Ampule" },
+    { value: "Vial", label: "Vial" },
+    { value: "Tin", label: "Tin" },
+    { value: "Strip", label: "Strip" },
+    { value: "Tube", label: "Tube" },
+    { value: "Box", label: "Box" },
+    { value: "Cosmetics", label: "Cosmetics" },
+    { value: "10x100", label: "10 x 100" },
+    { value: "Of10", label: "Of 10" },
+    { value: "Of20", label: "Of 20" },
+    { value: "Of14", label: "Of 14" },
+    { value: "Of28", label: "Of 28" },
+    { value: "Of30", label: "Of 30" },
+    { value: "Suppository", label: "Suppository" },
+    { value: "Pcs", label: "Pcs" },
+  ];
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [vatRegno, setVatRegno] = useState("");
+  const [fno, setFno] = useState("");
   const [discount, setDiscount] = useState(0);
   // const [showReceipt, setShowReceipt] = useState(false);
   // const [lastSale, setLastSale] = useState<Sale | null>(null);
@@ -103,10 +128,12 @@ export function POSSystem() {
         medicine.batch_no.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory =
         selectedCategory === "all" || medicine.department === selectedCategory;
+      const matchesUnitType =
+        selectedUnitType === "all" || medicine.unit_type === selectedUnitType;
       const inStock = medicine.stock > 0;
-      return matchesSearch && matchesCategory && inStock;
+      return matchesSearch && matchesCategory && matchesUnitType && inStock;
     });
-  }, [medicines, searchTerm, selectedCategory]);
+  }, [medicines, searchTerm, selectedCategory, selectedUnitType]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
   const discountAmount = (subtotal * discount) / 100;
@@ -172,6 +199,9 @@ export function POSSystem() {
     setCart([]);
     setCustomerName("");
     setCustomerPhone("");
+    setCustomerAddress("");
+    setVatRegno("");
+    setFno("");
     setDiscount(0);
   };
 
@@ -181,6 +211,9 @@ export function POSSystem() {
     const salePayload = {
       customer_name: customerName || "",
       customer_phone: customerPhone || "",
+      customer_address: customerAddress || "",
+      vat_regno: vatRegno || "",
+      fno: fno || "",
       discount_percentage: discount,
       sold_by: user?.id || "",
       items: cart.map((item) => ({
@@ -194,9 +227,10 @@ export function POSSystem() {
     try {
       console.log("salePayload", salePayload);
       const createdSale = await createSale(salePayload).unwrap();
+      console.log("Created Sale:", createdSale);
       toast.success(`${createdSale.items.length} items sold!`);
       // Navigate to invoice with sale data
-      navigate("/invoice", { state: { sale: createdSale } });
+      navigate("/invoice", { state: { sale: createdSale , ...(customerAddress && {address:customerAddress}), ...(vatRegno && {vatreg:vatRegno}), ...(fno && {fno:fno})} });
 
       clearCart();
     } catch (error) {
@@ -224,7 +258,7 @@ export function POSSystem() {
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="text-xs">
-              Cashier: {user?.name}
+              Cashier: {user?.username}
             </Badge>
             <Button
               variant="outline"
@@ -280,6 +314,22 @@ export function POSSystem() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <Select
+                    value={selectedUnitType}
+                    onValueChange={setSelectedUnitType}
+                  >
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="All Unit Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Unit Types</SelectItem>
+                      {unitTypeOptions.map((unitType) => (
+                        <SelectItem key={unitType.value} value={unitType.value}>
+                          {unitType.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Medicine Table */}
@@ -294,7 +344,8 @@ export function POSSystem() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>Units</TableHead>
+                            <TableHead>Department</TableHead>
+                            <TableHead>Unit Type</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Stock</TableHead>
                             <TableHead>Add To Cart</TableHead>
@@ -311,6 +362,7 @@ export function POSSystem() {
                               <TableCell>
                                 {getCategoryName(medicine.department)}
                               </TableCell>
+                              <TableCell>{medicine.unit || "N/A"}</TableCell>
                               <TableCell>Birr {medicine.price}</TableCell>
                               <TableCell>{medicine.stock}</TableCell>
                               <TableCell>
@@ -381,9 +433,19 @@ export function POSSystem() {
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-8 text-center text-sm">
-                                {item.quantity}
-                              </span>
+                              <Input
+                                type="number"
+                                min="1"
+                                max={item.medicine.stock}
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  updateQuantity(
+                                    item.medicine.id,
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                                className="w-16 text-center text-sm"
+                              />
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -438,6 +500,33 @@ export function POSSystem() {
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customerAddress">Address (Optional)</Label>
+                  <Input
+                    id="customerAddress"
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    placeholder="Enter address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vatRegno">VAT Reg No (Optional)</Label>
+                  <Input
+                    id="vatRegno"
+                    value={vatRegno}
+                    onChange={(e) => setVatRegno(e.target.value)}
+                    placeholder="Enter VAT Reg No"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fno">F.No (Optional)</Label>
+                  <Input
+                    id="fno"
+                    value={fno}
+                    onChange={(e) => setFno(e.target.value)}
+                    placeholder="Enter F.No"
                   />
                 </div>
                 <div className="space-y-2">
