@@ -87,7 +87,7 @@ const toWords = new ToWords({
 
       const words = convertToBirrWords(totalAfterDiscount);
       setAmountInWords(words);
-      setPreparedBy(sale.discounted_by || "");  
+      setPreparedBy(sale.discounted_by_username || "");  
     }
   }, [location.state]);
 
@@ -128,10 +128,10 @@ const toWords = new ToWords({
       setVat("0.00"); // No VAT in POS
       setGrandTotal(totalAfterDiscount.toFixed(2));
 
-      setPreparedBy(saleDetail.discounted_by || "");
+      setPreparedBy(saleDetail.discounted_by_username || "");
          const words = convertToBirrWords(totalAfterDiscount);
    setAmountInWords(words);
-      setPreparedBy(saleDetail.discounted_by || "");
+      setPreparedBy(saleDetail.discounted_by_username || "");
 
     }
   }, [saleDetail]);

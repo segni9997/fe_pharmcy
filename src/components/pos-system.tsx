@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import type { Medicine } from "@/store/medicineApi";
+import type { GetMedicine } from "@/store/medicineApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,7 @@ import { useQueryParamsState } from "@/hooks/useQueryParamsState";
 import { Pagination } from "@/components/ui/pagination";
 
 interface CartItem {
-  medicine: Medicine;
+  medicine: GetMedicine;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -77,7 +77,7 @@ export function POSSystem() {
     setItemsPerPage,
   } = useQueryParamsState();
 
-  const { data: medicines } = useGetMedicinesQuery({
+  const { data: medicines ,refetch} = useGetMedicinesQuery({
     pageNumber: currentPage,
     pageSize: itemsPerPage,
   });
@@ -128,7 +128,7 @@ export function POSSystem() {
         medicine.generic_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         medicine.batch_no.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory =
-        selectedCategory === "all" || medicine.department === selectedCategory;
+        selectedCategory === "all" || medicine.department.id === selectedCategory;
       const matchesUnitType =
         selectedUnitType === "all" || medicine.unit_type === selectedUnitType;
       const inStock = medicine.stock > 0;
@@ -140,7 +140,7 @@ export function POSSystem() {
   const discountAmount = (subtotal * discount) / 100;
   const total = subtotal - discountAmount;
 
-  const addToCart = (medicine: Medicine) => {
+  const addToCart = (medicine: GetMedicine) => {
     const existingItem = cart.find((item) => item.medicine.id === medicine.id);
 
     if (existingItem) {
@@ -209,7 +209,7 @@ export function POSSystem() {
 
   const processSale = async () => {
     if (cart.length === 0) return;
-
+   
     const salePayload = {
       customer_name: customerName || "",
       customer_phone: customerPhone || "",
@@ -219,22 +219,23 @@ export function POSSystem() {
       payment_method: paymentMethod || "",
       discount_percentage: discount,
       sold_by: user?.id || "",
-      items: cart.map((item) => ({
+      input_items: cart.map((item) => ({
         medicine: item.medicine.id,
         quantity: item.quantity,
         price: item.unitPrice,
         // total_price: item.totalPrice,
       })),
     };
-
+console.log("salepayload", salePayload)
     try {
       const createdSale = await createSale(salePayload).unwrap();
       toast.success(`${createdSale.items.length} items sold!`);
       // Navigate to invoice with sale data
       navigate("/invoice", { state: { sale: createdSale , ...(customerAddress && {address:customerAddress}), ...(vatRegno && {vatreg:vatRegno}), ...(fno && {fno:fno})} });
-
+      refetch()
       clearCart();
     } catch (error) {
+      console.log(error)
     }
   };
 
@@ -362,7 +363,7 @@ export function POSSystem() {
                             >
                               <TableCell>{medicine.brand_name}</TableCell>
                               <TableCell>
-                                {getCategoryName(medicine.department)}
+                                {getCategoryName(medicine.department?.id)}
                               </TableCell>
                               <TableCell>{medicine.unit || "N/A"}</TableCell>
                               <TableCell>Birr {medicine.price}</TableCell>
@@ -493,7 +494,7 @@ export function POSSystem() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="customerName">
-                      Customer Name (Optional)
+                      Customer Name (opt.)
                     </Label>
                     <Input
                       id="customerName"
@@ -504,7 +505,7 @@ export function POSSystem() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="customerPhone">
-                      Phone Number (Optional)
+                      Phone Number (opt.)
                     </Label>
                     <Input
                       id="customerPhone"
@@ -516,7 +517,7 @@ export function POSSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="customerAddress">Address (Optional)</Label>
+                    <Label htmlFor="customerAddress">Address (opt.)</Label>
                     <Input
                       id="customerAddress"
                       value={customerAddress}
@@ -525,7 +526,7 @@ export function POSSystem() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vatRegno">VAT Reg No (Optional)</Label>
+                    <Label htmlFor="vatRegno">VAT Reg No (opt.)</Label>
                     <Input
                       id="vatRegno"
                       value={vatRegno}
@@ -534,9 +535,9 @@ export function POSSystem() {
                     />
                   </div>
                 </div>
-                <div className="grid md:grid-cols-3 grid-cols-2 gap-3">
+                <div className="flex  flex-wrap  gap-3 space-x-2">
                   <div className="space-y-2">
-                    <Label htmlFor="fno">F.No (Optional)</Label>
+                    <Label htmlFor="fno">F.No (opt)</Label>
                     <Input
                       id="fno"
                       value={fno}

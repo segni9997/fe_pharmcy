@@ -41,13 +41,40 @@ export type Medicine = {
   refill_count: number;
   unit_type: MedicineUnit;
   number_of_boxes?: number;
+  department_id?: string;
+  strips_per_box?: number;
+  pieces_per_strip?: number;
+  piece_price?: number;
+  unit: string;
+};
+export type GetMedicine = {
+  code_no?: string;
+  id: string;
+  brand_name: string;
+  generic_name: string;
+  batch_no: string;
+  manufacture_date: string;
+  company_name?: string;
+  FSNO?: string;
+  expire_date: string;
+  price: string;
+  stock: number;
+  department: {
+    code: string;
+    name: string;
+    id: string;
+  };
+  attachment?: string;
+  refill_count: number;
+  unit_type: MedicineUnit;
+  number_of_boxes?: number;
   strips_per_box?: number;
   pieces_per_strip?: number;
   piece_price?: number;
   unit: string;
 };
 interface PaginatedMedicinesResponse {
-  results: Medicine[];
+  results: GetMedicine[];
   pagination: pagination;
 }
 

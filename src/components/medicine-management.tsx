@@ -74,8 +74,8 @@ import {
   useCreateMedicineMutation,
   useUpdateMedicineMutation,
   useDeleteMedicineMutation,
-  type Medicine,
   type MedicineUnit,
+  type GetMedicine,
 } from "@/store/medicineApi";
 import {
   useCreateRefillMutation,
@@ -98,7 +98,6 @@ export function MedicineManagement() {
   const [unitCurrentPage, setUnitCurrentPage] = useState(1);
   const [unitItemsPerPage, setUnitItemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
-    code_no: "",
     brand_name: "",
     generic_name: "",
     batch_no: "",
@@ -114,6 +113,7 @@ export function MedicineManagement() {
     price: "",
     stock: "",
     expire_date: "",
+    unit: ""
   });
   // Apis
   const { data: Units, refetch } = useGetUnitsQuery(
@@ -149,9 +149,9 @@ export function MedicineManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedUnitType, setSelectedUnitType] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingMedicine, setEditingMedicine] = useState<Medicine | null>(null);
+  const [editingMedicine, setEditingMedicine] = useState<GetMedicine | null>(null);
   const [isRefillDialogOpen, setIsRefillDialogOpen] = useState(false);
-  const [refillingMedicine, setRefillingMedicine] = useState<Medicine | null>(
+  const [refillingMedicine, setRefillingMedicine] = useState<GetMedicine | null>(
     null
   );
   const [refillFormData, setRefillFormData] = useState({
@@ -171,7 +171,7 @@ export function MedicineManagement() {
     pieces_per_strip: "",
   });
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [historyMedicine, setHistoryMedicine] = useState<Medicine | null>(null);
+  const [historyMedicine, setHistoryMedicine] = useState<GetMedicine | null>(null);
   const [isAddUnitDialogOpen, setIsAddUnitDialogOpen] = useState(false);
   const [unitFormData, setUnitFormData] = useState({
     id: "",
@@ -250,7 +250,7 @@ export function MedicineManagement() {
           medicine.FSNO?.toLowerCase().includes(searchTerm.toLowerCase())
         
         const matchesCategory =
-          selectedCategory === "all" || medicine.department.toString() === selectedCategory; 
+          selectedCategory === "all" || medicine.department.id.toString() === selectedCategory;
         
         return matchesSearch && matchesCategory ;
       }) || []
@@ -280,37 +280,120 @@ export function MedicineManagement() {
 
   const resetForm = () => {
     setFormData({
-      code_no: "",
       brand_name: formData.brand_name || "",
       generic_name: formData.generic_name || "",
-      batch_no:formData.batch_no || "",
-      manufacture_date:formData.manufacture_date || "",
-      department:formData.department || "",
+      batch_no: formData.batch_no || "",
+      manufacture_date: formData.manufacture_date || "",
+      department: formData.department || "",
       unit_type: "Strip" as MedicineUnit,
       number_of_boxes: "",
       company_name: "",
-      FSNO:"",
+      FSNO: "",
       strips_per_box: "",
       pieces_per_strip: "",
       piece_price: "",
       price: "",
       stock: "",
       expire_date: formData.expire_date || "",
+      unit: "Strip" as MedicineUnit,
     });
     setEditingMedicine(null);
   };
-
+  const handleResetForm = () => {
+   setFormData({
+     brand_name: "",
+     generic_name: "",
+     batch_no:  "",
+     manufacture_date:  "",
+     department:  "",
+     unit_type: "Strip" as MedicineUnit,
+     number_of_boxes: "",
+     company_name: "",
+     FSNO: "",
+     strips_per_box: "",
+     pieces_per_strip: "",
+     piece_price: "",
+     price: "",
+     stock: "",
+     expire_date:  "",
+     unit: "Strip" as MedicineUnit,
+   });
+}
   const resetUnitForm = () => {
     setUnitFormData({ id: "", code: "", name: "" });
   };
 
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    // Required fields for both add and edit
+    if (!formData.brand_name.trim()) {
+      errors.push("Medicine Name is required");
+    }
+    if (!formData.batch_no.trim()) {
+      errors.push("Batch Number is required");
+    }
+    if (!formData.manufacture_date) {
+      errors.push("Manufacture Date is required");
+    }
+    if (!formData.expire_date) {
+      errors.push("Expiry Date is required");
+    }
+    if (!formData.unit) {
+      errors.push("Unit Type is required");
+    }
+    if (!formData.department) {
+      errors.push("Department is required");
+    }
+    if (!formData.company_name) {
+      errors.push("Company name is required")
+    }
+      if (!formData.FSNO) {
+        errors.push("FS.NO  is required");
+      }
+
+    // Date validation
+    if (formData.manufacture_date && formData.expire_date) {
+      const manufactureDate = new Date(formData.manufacture_date);
+      const expiryDate = new Date(formData.expire_date);
+      if (manufactureDate >= expiryDate) {
+        errors.push("Manufacture Date must be before Expiry Date");
+      }
+    }
+
+    // Validation for editing
+    if (editingMedicine) {
+      if (!formData.price || Number.parseFloat(formData.price) <= 0) {
+        errors.push("Total Price must be greater than 0");
+      }
+    } else {
+      // Validation for adding
+      const totalStock = Number.parseInt(formData.stock) || calculateTotalPieces();
+      if (totalStock <= 0) {
+        errors.push("Stock quantity must be greater than 0. Please enter stock manually or provide calculation details.");
+      }
+      if (formData.piece_price && Number.parseFloat(formData.piece_price) <= 0) {
+        errors.push("Piece Price must be greater than 0 if provided");
+      }
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      toast.error(validationErrors.join("\n"));
+      return;
+    }
+
     if (editingMedicine) {
       try {
         await UpdateMedicine({
           id: editingMedicine.id,
-          code_no: formData.code_no,
           brand_name: formData.brand_name,
           generic_name: formData.generic_name,
           batch_no: formData.batch_no,
@@ -320,17 +403,17 @@ export function MedicineManagement() {
           expire_date: formData.expire_date,
           price: formData.price,
           stock: Number.parseInt(formData.stock) || calculateTotalPieces(),
-          department: formData.department,
-           unit: formData.unit_type,
+          department_id: formData.department,
+          unit: formData.unit,
         }).unwrap();
         toast.success("Medicine updated successfully");
+        setIsAddDialogOpen(false);
         refetchMeds();
       } catch (error) {
         toast.error("Failed to update medicine");
       }
     } else {
       const newMed = {
-        code_no: formData.code_no,
         brand_name: formData.brand_name,
         generic_name: formData.generic_name,
         batch_no: formData.batch_no,
@@ -338,8 +421,8 @@ export function MedicineManagement() {
         expire_date: formData.expire_date,
         price: formData.piece_price,
         stock: Number.parseInt(formData.stock) || calculateTotalPieces(),
-        department: formData.department,
-        unit: formData.unit_type,
+        department_id: formData.department,
+        unit: formData.unit,
         company_name: formData.company_name,
         FSNO: formData.FSNO,
       };
@@ -355,26 +438,26 @@ export function MedicineManagement() {
     // setIsAddDialogOpen(false);
     resetForm();
   };
-
-  const handleEdit = (medicine: Medicine) => {
+console.log(meds)
+  const handleEdit = (medicine: GetMedicine) => {
     setEditingMedicine(medicine);
     setFormData({
-      code_no: medicine.code_no,
       brand_name: medicine.brand_name,
       generic_name: medicine.generic_name || "",
       batch_no: medicine.batch_no,
       manufacture_date: medicine.manufacture_date,
-      department: medicine.department.toString(),
-      unit_type: medicine.unit_type || "Strip",
+      department: medicine.department.id.toString(),
+      unit_type: (medicine.unit_type as MedicineUnit) || "Strip",
       company_name: medicine.company_name || "",
       FSNO: medicine.FSNO || "",
       number_of_boxes: medicine.number_of_boxes?.toString() || "",
       strips_per_box: medicine.strips_per_box?.toString() || "",
       pieces_per_strip: medicine.pieces_per_strip?.toString() || "",
-      piece_price: medicine.piece_price?.toString() || "",
+      piece_price: medicine.price?.toString() || "",
       price: medicine.price.toString(),
       stock: medicine.stock.toString(),
       expire_date: medicine.expire_date.split("T")[0],
+      unit :medicine.unit
     });
     setIsAddDialogOpen(true);
   };
@@ -391,7 +474,7 @@ export function MedicineManagement() {
     }
   };
 
-  const handleRefill = (medicine: Medicine) => {
+  const handleRefill = (medicine: GetMedicine) => {
     setRefillingMedicine(medicine);
     setRefillFormData({
       quantity: "",
@@ -399,7 +482,7 @@ export function MedicineManagement() {
       end_date: "",
       batch_no: "",
       medicine: medicine.id,
-      department: medicine.department,
+      department: medicine.department.id,
       manufacture_date: "",
       company_name: medicine.company_name || "",
       FSNO: medicine.FSNO || "",
@@ -448,7 +531,7 @@ export function MedicineManagement() {
     }
   };
 
-  const handleHistory = (medicine: Medicine) => {
+  const handleHistory = (medicine: GetMedicine) => {
     setHistoryMedicine(medicine);
     setIsHistoryDialogOpen(true);
   };
@@ -479,7 +562,6 @@ export function MedicineManagement() {
     const data = filteredMedicines.map((med) => ({
       "Medicine Name": med.brand_name,
       "Generic Name": med.generic_name || "",
-      "Code No": med.code_no,
       Unit: getCategoryName(med.department.toString()),
       "Company Name": med.company_name || "",
       "FSNO": med.FSNO || "",
@@ -594,7 +676,7 @@ export function MedicineManagement() {
                               required
                             />
                           </div>{" "}
-                          <div className="space-y-2">
+                          {/* <div className="space-y-2">
                             <Label htmlFor="code_no">Code Number *</Label>
                             <Input
                               id="code_no"
@@ -607,7 +689,7 @@ export function MedicineManagement() {
                               }
                               required
                             />
-                          </div>
+                          </div> */}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -647,11 +729,11 @@ export function MedicineManagement() {
                           <div className="space-y-2">
                             <Label htmlFor="unit_type">Unit Type *</Label>
                             <Select
-                              value={formData.unit_type}
+                              value={formData.unit}
                               onValueChange={(value) =>
                                 setFormData((prev) => ({
                                   ...prev,
-                                  unit_type: value as MedicineUnit,
+                                  unit: value as MedicineUnit,
                                 }))
                               }
                             >
@@ -875,6 +957,13 @@ export function MedicineManagement() {
                         )}
                       </div>
                       <DialogFooter>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleResetForm}
+                        >
+                          Reset Form
+                        </Button>
                         <Button
                           type="button"
                           variant="outline"
@@ -1597,10 +1686,10 @@ export function MedicineManagement() {
                           )}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-foreground">
-                          {medicine.code_no}
+                          {medicine.department?.code || "N/A"}
                         </TableCell>
                         <TableCell className="text-foreground">
-                          {getCategoryName(medicine.department.toString())}
+                          {medicine.department?.name || "N/A"}
                         </TableCell>
                         <TableCell className="text-foreground">
                           {medicine.unit || "N/A"}

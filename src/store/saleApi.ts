@@ -40,7 +40,10 @@ export const saleApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getSales: builder.query<PaginatedSalesResponse, { pageNumber?: number; pageSize?: number }>({
+    getSales: builder.query<
+      PaginatedSalesResponse,
+      { pageNumber?: number; pageSize?: number }
+    >({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
         queryParams.append("pageNumber", String(params.pageNumber ?? 1));
@@ -69,7 +72,7 @@ export const saleApi = createApi({
         payment_method?: string;
         discount_percentage: number;
         sold_by: string;
-        items: {
+        input_items: {
           medicine: string;
           quantity: number;
           price: number;
@@ -107,7 +110,7 @@ export const saleApi = createApi({
         payment_method?: string;
         discount_percentage: number;
         sold_by: string;
-        items: {
+        input_items: {
           medicine: string;
           quantity: number;
           price: number;

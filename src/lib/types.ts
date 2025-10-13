@@ -94,6 +94,7 @@ export interface Sale {
   discount_percentage: string;
 
   discounted_by: string;
+  discounted_by_username: string;
   total_amount: string;
   sale_date: string;
   sold_by: string;

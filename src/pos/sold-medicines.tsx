@@ -66,7 +66,7 @@ export function SoldMedicines() {
     // Refetch when these params change
     refetchOnMountOrArgChange: true,
   });
-
+console.log(salesData)
   // Refetch data when itemsPerPage changes
   useEffect(() => {
     refetch();
@@ -142,7 +142,7 @@ export function SoldMedicines() {
       "Discount Amount": sale.discounted_amount,
       "Discount Percentage": sale.discount_percentage,
       "Sold (Birr)": sale.total_amount,
-      "Sold By": sale.discounted_by || "-"
+      "Sold By": sale.discounted_by_username || "-"
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -319,7 +319,7 @@ export function SoldMedicines() {
                         <TableCell>% {sale.discount_percentage}</TableCell>
                         <TableCell>Birr {sale.total_amount}</TableCell>
 
-                        <TableCell>{sale.discounted_by || "-"}</TableCell>
+                        <TableCell>{sale.discounted_by_username || "-"}</TableCell>
                         <TableCell className="flex gap-1">
                           <Button
                             size="sm"
