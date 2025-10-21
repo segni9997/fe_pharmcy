@@ -22,7 +22,7 @@ export type MedicineUnit =
   | "Suppository"
   | "Pcs"
   | "Tablet"
-  | "PK";
+  | "Pk";
 
 export type Medicine = {
   id: string;

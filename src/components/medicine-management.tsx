@@ -125,6 +125,15 @@ export function MedicineManagement() {
       refetchOnMountOrArgChange: true,
     }
   );
+   const { data: Unitsselection } = useGetUnitsQuery(
+     {
+       pageNumber: 1,
+       pageSize: 1000,
+     },
+     {
+       refetchOnMountOrArgChange: true,
+     }
+   );
   const { data: meds, refetch: refetchMeds } = useGetMedicinesQuery(
     {
       pageNumber: currentPage,
@@ -199,7 +208,7 @@ export function MedicineManagement() {
     { value: "Suppository", label: "Suppository" },
     { value: "Pcs", label: "Pcs" },
     { value: "Tablet", label: "Tablet" },
-    { value: "PK", label:"PK" },
+    { value: "Pk", label:"Pk" },
   ];
   const calculateTotalPieces = () => {
     const boxes = Number.parseInt(formData.number_of_boxes) || 0;
@@ -333,9 +342,7 @@ export function MedicineManagement() {
     if (!formData.batch_no.trim()) {
       errors.push("Batch Number is required");
     }
-    if (!formData.manufacture_date) {
-      errors.push("Manufacture Date is required");
-    }
+  
     if (!formData.expire_date) {
       errors.push("Expiry Date is required");
     }
@@ -353,13 +360,13 @@ export function MedicineManagement() {
       }
 
     // Date validation
-    if (formData.manufacture_date && formData.expire_date) {
-      const manufactureDate = new Date(formData.manufacture_date);
-      const expiryDate = new Date(formData.expire_date);
-      if (manufactureDate >= expiryDate) {
-        errors.push("Manufacture Date must be before Expiry Date");
-      }
-    }
+    // if (formData.manufacture_date && formData.expire_date) {
+    //   const manufactureDate = new Date(formData.manufacture_date);
+    //   const expiryDate = new Date(formData.expire_date);
+    //   if (manufactureDate >= expiryDate) {
+    //     errors.push("Manufacture Date must be before Expiry Date");
+    //   }
+    // }
 
     // Validation for editing
     if (editingMedicine) {
@@ -397,7 +404,9 @@ export function MedicineManagement() {
           brand_name: formData.brand_name,
           generic_name: formData.generic_name,
           batch_no: formData.batch_no,
-          manufacture_date: formData.manufacture_date,
+          ...(formData.manufacture_date
+            ? { manufacture_date: formData.manufacture_date }
+            : {}),
           company_name: formData.company_name,
           FSNO: formData.FSNO,
           expire_date: formData.expire_date,
@@ -417,7 +426,8 @@ export function MedicineManagement() {
         brand_name: formData.brand_name,
         generic_name: formData.generic_name,
         batch_no: formData.batch_no,
-        manufacture_date: formData.manufacture_date,
+      ...(formData.manufacture_date ? { manufacture_date: formData.manufacture_date } : {}),
+
         expire_date: formData.expire_date,
         price: formData.piece_price,
         stock: Number.parseInt(formData.stock) || calculateTotalPieces(),
@@ -706,7 +716,6 @@ console.log(meds)
                                   manufacture_date: e.target.value,
                                 }))
                               }
-                              required
                             />
                           </div>
                           <div className="space-y-2">
@@ -767,7 +776,7 @@ console.log(meds)
                                 <SelectValue placeholder="Select Dept" />
                               </SelectTrigger>
                               <SelectContent>
-                                {Units?.results.map((category) => (
+                                {Unitsselection?.results.map((category) => (
                                   <SelectItem
                                     key={category.id}
                                     value={category.id.toString()}
@@ -1548,9 +1557,9 @@ console.log(meds)
             <SelectTrigger className="w-full sm:w-56 h-12 border-border focus:border-ring">
               <SelectValue placeholder="All Units" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-96 overflow-y-auto">
               <SelectItem value="all">All Units</SelectItem>
-              {Units?.results.map((category) => (
+              {Unitsselection?.results.map((category) => (
                 <SelectItem key={category.id} value={category.id.toString()}>
                   {category.name}
                 </SelectItem>
