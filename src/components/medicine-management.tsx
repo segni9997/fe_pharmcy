@@ -93,6 +93,8 @@ export function MedicineManagement() {
     setItemsPerPage,
     unit,
     setUnit,
+    searchValue,
+   setSearchValue
   } = useQueryParamsState();
 
   const [unitCurrentPage, setUnitCurrentPage] = useState(1);
@@ -138,12 +140,14 @@ export function MedicineManagement() {
     {
       pageNumber: currentPage,
       pageSize: itemsPerPage,
-      unit
+      unit,
+      search:searchValue
     },
     {
       refetchOnMountOrArgChange: true,
     }
   );
+  console.log("fetching")
   const { data: refills, refetch: refetchRefills } = useGetRefillsQuery();
   const [AddUnit, { isLoading: isUnitAdding }] = useCreateUnitMutation();
   const [UpdateUnit] = useUpdateUnitMutation();
@@ -154,7 +158,6 @@ export function MedicineManagement() {
   const [DeleteMedicine] = useDeleteMedicineMutation();
   const [createRefill, { isLoading: isRefilling }] = useCreateRefillMutation();
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedUnitType, setSelectedUnitType] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -193,22 +196,23 @@ export function MedicineManagement() {
     { value: "Bottle", label: "Bottle" },
     { value: "Sachet", label: "Sachet" },
     { value: "Ampule", label: "Ampule" },
+    { value: "Tablet", label: "Tablet" },
+    { value: "Pk", label: "Pk" },
+    { value: "Box", label: "Box" },
+
     { value: "Vial", label: "Vial" },
     { value: "Tin", label: "Tin" },
     { value: "Strip", label: "Strip" },
     { value: "Tube", label: "Tube" },
-    { value: "Box", label: "Box" },
     { value: "Cosmetics", label: "Cosmetics" },
-    { value: "10x100", label: "10 x 100" },
-    { value: "Of10", label: "Of 10" },
-    { value: "Of20", label: "Of 20" },
-    { value: "Of14", label: "Of 14" },
-    { value: "Of28", label: "Of 28" },
-    { value: "Of30", label: "Of 30" },
+    { value: "10 x 100", label: "10 x 100" },
+    { value: "Of 10", label: "Of 10" },
+    { value: "Of 20", label: "Of 20" },
+    { value: "Of 14", label: "Of 14" },
+    { value: "Of 28", label: "Of 28" },
+    { value: "Of 30", label: "Of 30" },
     { value: "Suppository", label: "Suppository" },
     { value: "Pcs", label: "Pcs" },
-    { value: "Tablet", label: "Tablet" },
-    { value: "Pk", label:"Pk" },
   ];
   const calculateTotalPieces = () => {
     const boxes = Number.parseInt(formData.number_of_boxes) || 0;
@@ -250,13 +254,13 @@ export function MedicineManagement() {
         const matchesSearch =
           medicine.brand_name
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
+            .includes(searchValue.toLowerCase()) ||
           medicine.generic_name
             ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          medicine.batch_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          medicine.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          medicine.FSNO?.toLowerCase().includes(searchTerm.toLowerCase())
+            .includes(searchValue.toLowerCase()) ||
+          medicine.batch_no.toLowerCase().includes(searchValue.toLowerCase()) ||
+          medicine.company_name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          medicine.FSNO?.toLowerCase().includes(searchValue.toLowerCase())
         
         const matchesCategory =
           selectedCategory === "all" || medicine.department.id.toString() === selectedCategory;
@@ -264,7 +268,7 @@ export function MedicineManagement() {
         return matchesSearch && matchesCategory ;
       }) || []
     );
-  }, [meds, searchTerm, selectedCategory, selectedUnitType]);
+  }, [meds, searchValue, selectedCategory, selectedUnitType]);
 
   const getStockStatus = (quantity: number) => {
     if (quantity === 0)
@@ -893,6 +897,7 @@ console.log(meds)
                                 id="piece_price"
                                 type="number"
                                 step="0.01"
+                                min={0}
                                 value={formData.piece_price}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -913,6 +918,7 @@ console.log(meds)
                                 id="price"
                                 type="number"
                                 step="0.01"
+                                min={0}
                                 value={formData.price}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -1548,12 +1554,12 @@ console.log(meds)
             <Search className="absolute left-4 top-1/2 transform -translate-y-1-1/2 text-muted-foreground h-5 w-5" />
             <Input
               placeholder="Search medicines..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="pl-12 h-12 border-border focus:border-ring"
             />
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select value={searchValue} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full sm:w-56 h-12 border-border focus:border-ring">
               <SelectValue placeholder="All Units" />
             </SelectTrigger>
@@ -1663,7 +1669,7 @@ console.log(meds)
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredMedicines.map((medicine) => {
+                  {meds?.results?.map((medicine) => {
                     const stockStatus = getStockStatus(medicine.stock);
                     const expiryStatus = getExpiryStatus(
                       new Date(medicine.expire_date)

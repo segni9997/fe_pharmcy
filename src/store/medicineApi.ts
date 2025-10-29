@@ -13,12 +13,12 @@ export type MedicineUnit =
   | "Tube"
   | "Box"
   | "Cosmetics"
-  | "10x100"
-  | "Of10"
-  | "Of20"
-  | "Of14"
-  | "Of28"
-  | "Of30"
+  | "10 x 100"
+  | "Of 10"
+  | "Of 20"
+  | "Of 14"
+  | "Of 28"
+  | "Of 30"
   | "Suppository"
   | "Pcs"
   | "Tablet"
@@ -97,13 +97,14 @@ export const medicineApi = createApi({
   endpoints: (builder) => ({
     getMedicines: builder.query<
       PaginatedMedicinesResponse,
-      { pageNumber?: number; pageSize?: number, unit?:string }
+      { pageNumber?: number; pageSize?: number, unit?:string, search?:string }
     >({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
         queryParams.append("pageNumber", String(params.pageNumber ?? 1));
         queryParams.append("page_size", String(params.pageSize ?? 10));
         queryParams.append("unit", params.unit ?? "");
+        queryParams.append("search", params.search ?? "");
         const url = `/pharmacy/medicines/?${queryParams.toString()}`;
         return {
           url,
